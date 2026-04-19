@@ -1,0 +1,616 @@
+export type Priority = "CRITICAL" | "HIGH" | "MONITOR" | "STRENGTH";
+
+export interface SubIndicator {
+  name: string;
+  client: number;
+  peer: number;
+  gap: number;
+  priority: Priority;
+}
+
+export interface Dimension {
+  key: string;
+  name: string;
+  short: string;
+  score: number;
+  stage: string;
+  weight: number; // 1 or 1.5
+  indicators: SubIndicator[];
+}
+
+export const clientProfile = {
+  name: "Lara Tech Consulting",
+  location: "Hyderabad",
+  fteCount: "1,800 FTEs",
+  tenure: "7 years",
+  functions: "Technology",
+  composite: 1.9,
+  peerAvg: 2.6,
+  currentStage: 2,
+  currentStageLabel: "AI Embedded",
+  targets: [
+    { stage: 3, label: "AI Scaled", in: "9M" },
+    { stage: 4, label: "AI Native", in: "18M" },
+    { stage: 5, label: "AI Realized", in: "36M" },
+  ],
+};
+
+export const stages = [
+  { n: 1, label: "AI Aware", state: "completed" as const },
+  { n: 2, label: "AI Embedded", state: "current" as const, score: 2.4 },
+  { n: 3, label: "AI Scaled", state: "target" as const, eta: "9M" },
+  { n: 4, label: "AI Native", state: "target" as const, eta: "18M" },
+  { n: 5, label: "AI Realized", state: "target" as const, eta: "36M" },
+];
+
+export const dimensions: Dimension[] = [
+  {
+    key: "strategy",
+    name: "Strategy",
+    short: "Strategy",
+    score: 2.0,
+    stage: "Embedded",
+    weight: 1.5,
+    indicators: [
+      { name: "AI vision clarity & executive mandate", client: 2.2, peer: 3.0, gap: -0.8, priority: "HIGH" },
+      { name: "Multi-year AI investment roadmap", client: 1.8, peer: 2.8, gap: -1.0, priority: "CRITICAL" },
+      { name: "Parent organisation alignment on AI agenda", client: 2.1, peer: 2.6, gap: -0.5, priority: "HIGH" },
+      { name: "AI use case portfolio prioritisation", client: 2.4, peer: 2.7, gap: -0.3, priority: "MONITOR" },
+      { name: "AI budget governance & accountability", client: 1.5, peer: 2.5, gap: -1.0, priority: "CRITICAL" },
+    ],
+  },
+  {
+    key: "process",
+    name: "Process",
+    short: "Process",
+    score: 2.4,
+    stage: "Embedded",
+    weight: 1,
+    indicators: [
+      { name: "AI-augmented process identification & mapping", client: 2.3, peer: 2.8, gap: -0.5, priority: "HIGH" },
+      { name: "Agile AI delivery model & sprint cadence", client: 3.2, peer: 2.6, gap: 0.6, priority: "STRENGTH" },
+      { name: "Human-AI teaming & workflow redesign", client: 1.4, peer: 2.5, gap: -1.1, priority: "CRITICAL" },
+      { name: "AI use case lifecycle management", client: 2.5, peer: 2.7, gap: -0.2, priority: "MONITOR" },
+      { name: "Change management for AI adoption", client: 2.2, peer: 2.5, gap: -0.3, priority: "MONITOR" },
+    ],
+  },
+  {
+    key: "talent",
+    name: "Talent & Skills",
+    short: "Talent",
+    score: 2.2,
+    stage: "Embedded",
+    weight: 1,
+    indicators: [
+      { name: "ML engineering & data science depth", client: 2.5, peer: 2.6, gap: -0.1, priority: "STRENGTH" },
+      { name: "General workforce AI literacy (%)", client: 1.2, peer: 2.4, gap: -1.2, priority: "CRITICAL" },
+      { name: "AI talent acquisition & retention", client: 1.8, peer: 2.6, gap: -0.8, priority: "HIGH" },
+      { name: "Structured AI learning & development programmes", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
+      { name: "Prompt engineering & GenAI fluency", client: 1.4, peer: 2.2, gap: -0.8, priority: "HIGH" },
+    ],
+  },
+  {
+    key: "tech",
+    name: "Platform & Technology",
+    short: "Platform",
+    score: 1.8,
+    stage: "Aware",
+    weight: 1,
+    indicators: [
+      { name: "Enterprise LLM platform (Azure OpenAI / Bedrock)", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
+      { name: "Cloud platform maturity", client: 2.4, peer: 3.2, gap: -0.8, priority: "HIGH" },
+      { name: "AI/ML tooling standardisation & LLMOps", client: 2.2, peer: 2.4, gap: -0.2, priority: "STRENGTH" },
+      { name: "API & integration architecture (agentic-readiness)", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
+      { name: "Real-time inference & model serving infrastructure", client: 1.8, peer: 2.2, gap: -0.4, priority: "MONITOR" },
+    ],
+  },
+  {
+    key: "org",
+    name: "Organisation",
+    short: "Org Design",
+    score: 1.8,
+    stage: "Aware",
+    weight: 1,
+    indicators: [
+      { name: "Dedicated AI CoE or centre of competency", client: 1.0, peer: 3.0, gap: -2.0, priority: "CRITICAL" },
+      { name: "AI leadership role (Head of AI / CDAO)", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
+      { name: "AI embedded within business functions", client: 2.2, peer: 2.8, gap: -0.6, priority: "HIGH" },
+      { name: "Cross-functional AI squad model", client: 1.8, peer: 2.4, gap: -0.6, priority: "HIGH" },
+      { name: "AI career paths & role taxonomy", client: 2.0, peer: 2.3, gap: -0.3, priority: "MONITOR" },
+    ],
+  },
+  {
+    key: "data",
+    name: "Data",
+    short: "Data",
+    score: 1.6,
+    stage: "Aware",
+    weight: 1,
+    indicators: [
+      { name: "Centralised data lake / warehouse", client: 1.0, peer: 3.0, gap: -2.0, priority: "CRITICAL" },
+      { name: "Data quality framework & SLAs", client: 1.2, peer: 2.5, gap: -1.3, priority: "CRITICAL" },
+      { name: "Data cataloguing & lineage tracking", client: 1.5, peer: 2.4, gap: -0.9, priority: "HIGH" },
+      { name: "Feature store & ML-ready datasets", client: 1.8, peer: 2.3, gap: -0.5, priority: "HIGH" },
+      { name: "Unstructured data strategy (RAG, document AI)", client: 1.0, peer: 2.0, gap: -1.0, priority: "CRITICAL" },
+    ],
+  },
+  {
+    key: "perf",
+    name: "Performance & Value",
+    short: "Perf.",
+    score: 1.5,
+    stage: "Aware",
+    weight: 1,
+    indicators: [
+      { name: "AI ROI framework & value tracking methodology", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
+      { name: "AI KPI dashboard reported to leadership", client: 1.2, peer: 2.4, gap: -1.2, priority: "CRITICAL" },
+      { name: "Business outcome attribution to AI initiatives", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
+      { name: "AI pilot success criteria & gate reviews", client: 1.8, peer: 2.2, gap: -0.4, priority: "MONITOR" },
+      { name: "Productivity benchmark vs pre-AI baseline", client: 1.8, peer: 2.0, gap: -0.2, priority: "MONITOR" },
+    ],
+  },
+  {
+    key: "gov",
+    name: "Governance",
+    short: "Governance",
+    score: 2.0,
+    stage: "Embedded",
+    weight: 1,
+    indicators: [
+      { name: "AI ethics policy & responsible use framework", client: 2.5, peer: 2.6, gap: -0.1, priority: "STRENGTH" },
+      { name: "Model registry & inventory management", client: 1.5, peer: 2.4, gap: -0.9, priority: "HIGH" },
+      { name: "AI audit trail & explainability requirements", client: 2.0, peer: 2.3, gap: -0.3, priority: "MONITOR" },
+      { name: "Data privacy & IP protection controls", client: 2.2, peer: 2.5, gap: -0.3, priority: "MONITOR" },
+      { name: "AI procurement & vendor governance", client: 1.8, peer: 2.2, gap: -0.4, priority: "MONITOR" },
+    ],
+  },
+  {
+    key: "risk",
+    name: "Risk Management",
+    short: "Risk",
+    score: 1.9,
+    stage: "Aware",
+    weight: 1.5,
+    indicators: [
+      { name: "Model risk management framework (MRM)", client: 1.2, peer: 2.5, gap: -1.3, priority: "CRITICAL" },
+      { name: "Regulatory compliance (EU AI Act / RBI)", client: 1.8, peer: 2.5, gap: -0.7, priority: "HIGH" },
+      { name: "AI incident response & escalation playbook", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
+      { name: "Model performance monitoring & drift detection", client: 2.2, peer: 2.4, gap: -0.2, priority: "MONITOR" },
+      { name: "Third-party AI vendor risk assessment", client: 2.8, peer: 2.4, gap: 0.4, priority: "STRENGTH" },
+    ],
+  },
+];
+
+export type BenchmarkTone = "self" | "behind" | "ahead" | "neutral";
+
+export interface Benchmark {
+  label: string;
+  score: number;
+  tone: BenchmarkTone;
+  dotClass: string; // tailwind bg class using semantic tokens
+}
+
+export const benchmarks: Benchmark[] = [
+  { label: "Your GARIX Score", score: clientProfile.composite, tone: "self", dotClass: "bg-muted-foreground/60" },
+  { label: "India GCC — Leading quartile", score: 3.4, tone: "behind", dotClass: "bg-muted-foreground/60" },
+  { label: "India GCC — Median", score: 3.2, tone: "behind", dotClass: "bg-yellow" },
+  { label: "India GCC — Lagging quartile", score: 2.2, tone: "ahead", dotClass: "bg-muted-foreground/60" },
+  { label: "GCC Sector Avg — Retail & Consumer", score: 3.0, tone: "behind", dotClass: "bg-[hsl(210_90%_55%)]" },
+];
+
+// Roadmap durations: months -> roadmap blueprint
+export type DurationKey = 3 | 6 | 9 | 12;
+
+export interface DimensionGoal {
+  name: string;
+  from: number;
+  to: number;
+}
+
+export interface RoadmapPhase {
+  months: string;
+  title: string;
+  bullets: string[];
+}
+
+export interface StrategicAction {
+  num: string;
+  title: string;
+  description: string;
+  term: "Early-term action" | "Mid-term action" | "Long-term action";
+}
+
+export interface RoadmapPlan {
+  duration: DurationKey;
+  targetStage: number;
+  targetStageLabel: string;
+  targetRange: string;
+  pathTitle: string;
+  intro: string;
+  goals: DimensionGoal[];
+  actions: StrategicAction[];
+  phases: RoadmapPhase[];
+  projectedCopy: string;
+}
+
+const baseGoals12: DimensionGoal[] = [
+  { name: "Strategy", from: 1.0, to: 3.8 },
+  { name: "Process", from: 3.0, to: 4.0 },
+  { name: "Talent & Skills", from: 2.0, to: 3.8 },
+  { name: "Platform & Technology", from: 4.0, to: 4.5 },
+  { name: "Organization", from: 3.0, to: 4.0 },
+  { name: "Data", from: 2.0, to: 3.8 },
+  { name: "Performance & Value", from: 4.0, to: 4.5 },
+  { name: "Governance", from: 5.0, to: 5.0 },
+  { name: "Risk Management", from: 3.0, to: 4.0 },
+];
+
+const scaleGoals = (factor: number): DimensionGoal[] =>
+  baseGoals12.map((g) => ({
+    ...g,
+    to: Math.round((g.from + (g.to - g.from) * factor) * 10) / 10,
+  }));
+
+export const roadmapPlans: Record<DurationKey, RoadmapPlan> = {
+  3: {
+    duration: 3,
+    targetStage: 2,
+    targetStageLabel: "AI Embedded (mature)",
+    targetRange: "2.8–3.1",
+    pathTitle: "Quick-win sprint to consolidate Stage 2",
+    intro:
+      "A focused 3-month plan to close the most critical foundational gaps and stabilise current Stage 2 maturity before scaling.",
+    goals: scaleGoals(0.25),
+    actions: [
+      {
+        num: "01",
+        title: "Stand-up AI Programme Office & Budget",
+        description:
+          "Appoint an interim AI lead, consolidate fragmented spend under one P&L, and approve a 90-day investment envelope to unblock pilots.",
+        term: "Early-term action",
+      },
+      {
+        num: "02",
+        title: "Quick-win Use Case Acceleration",
+        description:
+          "Re-baseline the top 3 in-flight pilots with clear KPIs, value tracking and gate reviews to demonstrate measurable outcomes.",
+        term: "Early-term action",
+      },
+      {
+        num: "03",
+        title: "Foundational Data & Risk Controls",
+        description:
+          "Publish data quality SLAs for pilot datasets and stand-up a lightweight model risk register to satisfy governance.",
+        term: "Early-term action",
+      },
+    ],
+    phases: [
+      {
+        months: "Month 1",
+        title: "Mobilise & Align",
+        bullets: [
+          "Appoint interim Head of AI and programme office",
+          "Consolidate AI spend and approve 90-day envelope",
+          "Confirm executive sponsor and steering cadence",
+        ],
+      },
+      {
+        months: "Month 2",
+        title: "Stabilise Pilots",
+        bullets: [
+          "Re-baseline top 3 pilots with KPIs and gate reviews",
+          "Publish data quality SLAs for pilot datasets",
+          "Launch AI literacy primer for leadership cohort",
+        ],
+      },
+      {
+        months: "Month 3",
+        title: "Demonstrate Value",
+        bullets: [
+          "Report first ROI signals to parent organisation",
+          "Approve 12-month transformation business case",
+          "Publish lightweight model risk register",
+        ],
+      },
+    ],
+    projectedCopy:
+      "By the end of 3 months, the GCC will have stabilised Stage 2 maturity, demonstrated early ROI on priority pilots and unlocked the budget envelope to commit to a longer transformation.",
+  },
+  6: {
+    duration: 6,
+    targetStage: 3,
+    targetStageLabel: "AI Transformational (entry)",
+    targetRange: "3.0–3.4",
+    pathTitle: "Half-year programme to enter Stage 3",
+    intro:
+      "A 6-month roadmap to move from AI Embedded into the entry band of AI Transformational, anchored by a stood-up CoE and committed funding.",
+    goals: scaleGoals(0.5),
+    actions: [
+      {
+        num: "01",
+        title: "Establish AI CoE and Operating Model",
+        description:
+          "Appoint a permanent Head of AI, design the CoE charter and embed AI squads within priority business functions.",
+        term: "Early-term action",
+      },
+      {
+        num: "02",
+        title: "Scale Data & LLM Platform Foundations",
+        description:
+          "Procure and configure an enterprise LLM platform, harden data pipelines and establish a feature store for ML-ready datasets.",
+        term: "Mid-term action",
+      },
+      {
+        num: "03",
+        title: "Launch Workforce AI Literacy at Scale",
+        description:
+          "Roll out tiered AI learning paths covering general literacy, prompt engineering and ML engineering depth across 1,800 FTEs.",
+        term: "Mid-term action",
+      },
+    ],
+    phases: [
+      {
+        months: "Months 1-2",
+        title: "Mobilise CoE & Funding",
+        bullets: [
+          "Approve 12-month transformation budget",
+          "Appoint Head of AI and CoE leadership",
+          "Define cross-functional squad operating model",
+        ],
+      },
+      {
+        months: "Months 3-4",
+        title: "Platform & Data Foundations",
+        bullets: [
+          "Stand-up enterprise LLM platform (Azure OpenAI / Bedrock)",
+          "Implement data quality framework and SLAs",
+          "Launch tiered AI literacy curriculum",
+        ],
+      },
+      {
+        months: "Months 5-6",
+        title: "Scale & Measure",
+        bullets: [
+          "Deliver 5 production-grade AI use cases",
+          "Publish AI KPI dashboard to leadership",
+          "Validate Stage 3 entry through external review",
+        ],
+      },
+    ],
+    projectedCopy:
+      "By the end of 6 months, the GCC will enter Stage 3 — AI Transformational with a permanent CoE, an enterprise LLM platform live in production and measurable value tracked through a leadership KPI dashboard.",
+  },
+  9: {
+    duration: 9,
+    targetStage: 3,
+    targetStageLabel: "AI Transformational",
+    targetRange: "3.4–3.8",
+    pathTitle: "9-month path to Stage 3 — AI Transformational",
+    intro:
+      "A 9-month transformation programme to mature into the core of Stage 3, with embedded AI squads delivering value across all priority functions.",
+    goals: scaleGoals(0.75),
+    actions: [
+      {
+        num: "01",
+        title: "Build AI Strategy Framework with Business Alignment",
+        description:
+          "Develop a comprehensive AI strategy that aligns with business objectives and includes clear metrics for measuring success across weak dimensions such as Strategy, Data and Talent.",
+        term: "Early-term action",
+      },
+      {
+        num: "02",
+        title: "Upskill Teams and Strengthen Data Infrastructure",
+        description:
+          "Launch a targeted upskilling programme for ML engineers and improve data pipelines and governance practices to ensure consistency and reliability.",
+        term: "Mid-term action",
+      },
+      {
+        num: "03",
+        title: "Scale AI Platforms and Embed Risk Frameworks",
+        description:
+          "Optimise AI platforms to support enterprise use cases. Implement dashboards to track value delivery and integrate risk management frameworks aligned with strategy.",
+        term: "Long-term action",
+      },
+    ],
+    phases: [
+      {
+        months: "Months 1-2",
+        title: "Strategy Development & Alignment",
+        bullets: [
+          "Conduct leadership workshops to define AI vision and objectives",
+          "Create a detailed AI strategy aligned with business goals",
+          "Identify gaps in foundational dimensions (Strategy, Data, Talent)",
+        ],
+      },
+      {
+        months: "Months 3-4",
+        title: "Capability Building & Data Preparation",
+        bullets: [
+          "Launch upskilling programmes for ML engineers targeting AI/ML expertise",
+          "Enhance data infrastructure to improve pipeline reliability",
+          "Define data governance policies for consistency and quality",
+        ],
+      },
+      {
+        months: "Months 5-6",
+        title: "Process Refinement & Early Wins",
+        bullets: [
+          "Refine AI processes to match the strategic roadmap",
+          "Execute pilot AI use cases to demonstrate business value",
+          "Establish feedback loops for continuous improvement",
+        ],
+      },
+      {
+        months: "Months 7-9",
+        title: "Scaling Platforms & Expanding Use Cases",
+        bullets: [
+          "Optimise AI platforms for scalability",
+          "Integrate advanced risk management frameworks into operations",
+          "Expand use cases to drive broader enterprise adoption",
+        ],
+      },
+    ],
+    projectedCopy:
+      "By the end of 9 months, the GCC will achieve Stage 3 — AI Transformational maturity with a robust AI strategy, upskilled talent, scalable platforms and risk-managed delivery generating measurable business value.",
+  },
+  12: {
+    duration: 12,
+    targetStage: 3,
+    targetStageLabel: "AI Transformational",
+    targetRange: "3.8–4.3",
+    pathTitle: "AI / ML Practitioners's path to Stage 3 — AI Transformational",
+    intro:
+      "Your current GARIX score is 1.9 (Stage 2). Here is your personalised 12-month roadmap to reach a projected score of 3.8–4.3 (Stage 3).",
+    goals: baseGoals12,
+    actions: [
+      {
+        num: "01",
+        title: "Build AI Strategy Framework with Business Alignment",
+        description:
+          "Develop a comprehensive AI strategy that aligns with business objectives and includes key metrics for measuring success. Conduct leadership workshops and create a strategic roadmap to address gaps across weak dimensions such as Strategy, Data and Talent.",
+        term: "Early-term action",
+      },
+      {
+        num: "02",
+        title: "Upskill Teams and Strengthen Data Infrastructure",
+        description:
+          "Launch a targeted upskilling programme for ML engineers to enhance AI/ML capabilities, focusing on advanced data management and analytical skills. Simultaneously, improve data pipelines and governance practices to ensure consistency and reliability.",
+        term: "Mid-term action",
+      },
+      {
+        num: "03",
+        title: "Scale AI Platforms and Deliver High-Value Use Cases",
+        description:
+          "Optimise and scale AI platforms to support transformative, enterprise-level use cases. Implement dashboards to track value delivery, refine processes and integrate risk management frameworks aligned with the matured AI strategy.",
+        term: "Long-term action",
+      },
+    ],
+    phases: [
+      {
+        months: "Months 1-2",
+        title: "Strategy Development & Alignment",
+        bullets: [
+          "Conduct leadership workshops to define AI vision and objectives",
+          "Create a detailed AI strategy aligned with business goals",
+          "Identify gaps in foundational dimensions (Strategy, Data, Talent)",
+        ],
+      },
+      {
+        months: "Months 3-4",
+        title: "Capability Building & Data Preparation",
+        bullets: [
+          "Launch upskilling programmes for ML engineers targeting AI/ML expertise",
+          "Enhance data infrastructure to improve pipeline reliability",
+          "Define data governance policies for consistency and quality",
+        ],
+      },
+      {
+        months: "Months 5-6",
+        title: "Process Refinement & Early Wins",
+        bullets: [
+          "Refine AI processes to match the strategic roadmap",
+          "Execute pilot AI use cases to demonstrate business value",
+          "Establish feedback loops for continuous improvement",
+        ],
+      },
+      {
+        months: "Months 7-8",
+        title: "Scaling Platforms & Expanding Use Cases",
+        bullets: [
+          "Optimise AI platforms for scalability",
+          "Integrate advanced risk management frameworks into operations",
+          "Expand use cases to drive broader enterprise adoption",
+        ],
+      },
+      {
+        months: "Months 9-10",
+        title: "Performance Optimisation & Value Tracking",
+        bullets: [
+          "Implement dashboards to monitor AI performance and ROI",
+          "Fine-tune processes based on feedback and outcomes",
+          "Enable cross-functional collaboration to maximise AI impact",
+        ],
+      },
+      {
+        months: "Months 11-12",
+        title: "Transformation Validation & Sustainment",
+        bullets: [
+          "Validate transformation impact against defined metrics",
+          "Ensure sustainability through regular governance reviews",
+          "Prepare for continuous innovation beyond roadmap duration",
+        ],
+      },
+    ],
+    projectedCopy:
+      "By the end of 12 months, the India GCC will achieve Stage 3 — AI Transformational maturity, with a robust AI strategy, upskilled talent, enhanced data infrastructure, scalable platforms and optimised processes delivering measurable business value.",
+  },
+};
+
+export type FindingType = "STRENGTH" | "BLOCKER" | "CRITICAL" | "RISK";
+
+export interface Finding {
+  type: FindingType;
+  label: string;
+  title: string;
+  points: string[];
+}
+
+export interface DimensionTab {
+  key: string;
+  label: string;
+  icon: string;
+}
+
+export const dimensionTabs: DimensionTab[] = [
+  { key: "strategy", label: "Strategy", icon: "🎯" },
+  { key: "process", label: "Process", icon: "🔄" },
+  { key: "talent", label: "Talent", icon: "🧑‍💼" },
+  { key: "tech", label: "Platform & Tech", icon: "⚙️" },
+  { key: "org", label: "Organisation", icon: "🏢" },
+  { key: "data", label: "Data", icon: "📊" },
+  { key: "perf", label: "Perf. & Value", icon: "📈" },
+  { key: "gov", label: "Governance", icon: "🔲" },
+  { key: "risk", label: "Risk Mgmt", icon: "⚠️" },
+];
+
+export const findings: Finding[] = [
+  {
+    type: "STRENGTH",
+    label: "Strategic appetite",
+    title: "14 AI use cases identified, 3 in active pilot",
+    points: [
+      "Genuine strategic appetite at the GCC level — broad portfolio across automation, analytics and GenAI.",
+      "Raw material to advance from Stage 2 to Stage 3 with the right prioritisation.",
+    ],
+  },
+  {
+    type: "BLOCKER",
+    label: "Stage-progression blocker",
+    title: "No multi-year AI investment roadmap approved by parent",
+    points: [
+      "AI funded project-by-project without a committed 3-year transformation budget.",
+      "Prevents sequential infrastructure investment (data → LLM platform → CoE).",
+      "Securing a 3-year AI transformation budget from HQ is the most important strategic action.",
+    ],
+  },
+  {
+    type: "CRITICAL",
+    label: "Critical gap — leadership alignment",
+    title: "AI strategy not translated into operating model design",
+    points: [
+      "Strategy exists at directional level but hasn't cascaded into org design, role profiles or process maps.",
+      "Strategy without structural consequence remains aspiration.",
+      "Requires an AI Transformation Programme with named lead and cross-functional workstreams.",
+    ],
+  },
+  {
+    type: "RISK",
+    label: "Risk — budget governance gap",
+    title: "AI spend accountability fragmented across 5 budget holders",
+    points: [
+      "Spending distributed across technology, HR and function heads without consolidated P&L view.",
+      "Prevents ROI attribution, creates duplication risk, blocks coherent investment case to parent.",
+      "Centralising AI budget under future Head of AI is a 60-day action.",
+    ],
+  },
+];
