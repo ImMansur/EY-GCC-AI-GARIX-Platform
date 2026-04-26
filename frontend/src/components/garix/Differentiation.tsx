@@ -62,7 +62,7 @@ export const Differentiation = () => {
           {principles.map((p) => (
             <div
               key={p.n}
-              className="group bg-ink p-8 md:p-10 transition-all hover:bg-paper/[0.03] relative"
+              className="group bg-ink p-8 md:p-10 transition-all duration-300 hover:bg-ink/80 hover:-translate-y-1 relative border border-transparent hover:border-yellow/20"
             >
               <div className="flex items-start justify-between mb-8">
                 <span className="font-mono text-xs text-yellow tracking-wider">{p.n}</span>

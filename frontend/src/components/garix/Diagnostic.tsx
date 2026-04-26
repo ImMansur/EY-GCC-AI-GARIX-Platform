@@ -57,7 +57,7 @@ const phases = [
 
 export const Diagnostic = () => {
   return (
-    <section id="diagnostic" className="py-24 md:py-32 bg-muted/40">
+    <section id="diagnostic" className="py-24 md:py-32 bg-paper relative">
       <div className="container-narrow">
         <SectionHead
           eyebrow="04 — Diagnostic Approach"
@@ -76,7 +76,7 @@ export const Diagnostic = () => {
             {phases.map((p, i) => (
               <article
                 key={p.n}
-                className="relative bg-paper-elevated border border-border p-7 hover:shadow-elevated hover:border-yellow transition-all group"
+                className="relative bg-paper-elevated border border-border p-7 hover:shadow-elevated hover:border-yellow hover:-translate-y-1 transition-all duration-300 group"
               >
                 {/* Marker on rail */}
                 <div className="hidden md:flex absolute -top-[8px] left-7 h-4 w-4 rounded-full bg-yellow ring-4 ring-paper z-10 items-center justify-center">
@@ -84,10 +84,10 @@ export const Diagnostic = () => {
                 </div>
 
                 <div className="flex items-baseline justify-between mb-4">
-                  <span className="font-mono text-xs text-muted-foreground tracking-wider">
+                  <span className="font-mono text-xs text-yellow-deep tracking-wider font-semibold">
                     Phase {p.n}
                   </span>
-                  <span className="text-[10px] uppercase tracking-[0.18em] bg-ink text-paper px-2 py-1">
+                  <span className="text-[10px] uppercase tracking-[0.18em] bg-ink text-yellow px-2.5 py-1 font-medium">
                     {p.days}
                   </span>
                 </div>

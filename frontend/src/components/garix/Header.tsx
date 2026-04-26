@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const sections = [
+  { id: "top", label: "Home" },
   { id: "concept", label: "Concept" },
   { id: "differentiation", label: "Our Differentiation" },
   { id: "framework", label: "Framework" },
@@ -18,11 +19,9 @@ const sectionDark: Record<string, boolean> = {
   diagnostic: false,
 };
 
-const allSectionIds = ["top", "concept", "differentiation", "framework", "diagnostic"];
-
 export const Header = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [active, setActive] = useState<string>("concept");
+  const [active, setActive] = useState<string>("top");
   const [open, setOpen] = useState(false);
   const [isDark, setIsDark] = useState(true); // Hero is dark by default
 
@@ -31,7 +30,7 @@ export const Header = () => {
 
     const updateTheme = () => {
       let current = "top";
-      for (const id of allSectionIds) {
+      for (const { id } of sections) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top <= HEADER_H) {
           current = id;
@@ -120,10 +119,10 @@ export const Header = () => {
           <Link
             to="/signup"
             className={cn(
-              "hidden md:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-colors",
+              "hidden md:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all",
               isDark
-                ? "border border-paper/20 text-paper hover:bg-paper/10"
-                : "border border-border text-ink hover:bg-paper-elevated"
+                ? "bg-yellow text-ink hover:shadow-yellow"
+                : "bg-ink text-paper hover:bg-ink/80"
             )}
           >
             Get Started

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { roadmapPlans, type DurationKey, clientProfile } from "./data";
+import { DimensionRoadmap } from "./DimensionRoadmap";
 
 const durations: DurationKey[] = [3, 6, 9, 12];
 
@@ -84,31 +85,7 @@ export const Roadmap = () => {
           <span className="h-px w-6 bg-yellow" />
           Dimension-level goals
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {plan.goals.map((g) => {
-            const delta = +(g.to - g.from).toFixed(1);
-            const positive = delta > 0;
-            return (
-              <div
-                key={g.name}
-                className="flex items-center gap-3 px-4 py-3.5 bg-paper-elevated border border-border hover:border-ink/30 hover:shadow-card transition-all"
-              >
-                <span className="text-sm text-ink flex-1 truncate">{g.name}</span>
-                <span className="text-sm text-muted-foreground tabular-nums">{g.from.toFixed(1)}</span>
-                <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                <span className="text-sm font-bold text-yellow-deep tabular-nums">{g.to.toFixed(1)}</span>
-                <span
-                  className={`text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded ${
-                    positive ? "text-emerald-700" : "text-muted-foreground"
-                  }`}
-                >
-                  {positive ? "+" : ""}
-                  {delta.toFixed(1)}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <DimensionRoadmap duration={duration} />
       </section>
 
       {/* Strategic actions */}

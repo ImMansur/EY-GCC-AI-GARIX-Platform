@@ -198,6 +198,80 @@ export const benchmarks: Benchmark[] = [
   { label: "GCC Sector Avg — Retail & Consumer", score: 3.0, tone: "behind", dotClass: "bg-[hsl(210_90%_55%)]" },
 ];
 
+// ─── Dimension-wise indicator action items ─────────────────────────────────
+
+export interface IndicatorAction {
+  action: string;
+  term: "Short-term" | "Mid-term" | "Long-term";
+  impact: "High impact" | "Medium impact";
+}
+
+export const dimIndicatorActions: Record<string, IndicatorAction[]> = {
+  strategy: [
+    { action: "Define and formalise executive AI mandate across GCC leadership", term: "Mid-term", impact: "High impact" },
+    { action: "Build and board-approve multi-year AI investment roadmap", term: "Short-term", impact: "High impact" },
+    { action: "Align parent organisation on GCC AI transformation agenda", term: "Mid-term", impact: "High impact" },
+    { action: "Prioritise AI use case portfolio by strategic value and feasibility", term: "Long-term", impact: "Medium impact" },
+    { action: "Establish AI budget governance with named P&L accountability", term: "Short-term", impact: "High impact" },
+  ],
+  process: [
+    { action: "Map and prioritise AI-augmentable processes across functions", term: "Mid-term", impact: "High impact" },
+    { action: "Maintain and scale agile AI delivery cadence with bi-weekly sprints", term: "Long-term", impact: "Medium impact" },
+    { action: "Redesign key workflows for effective human-AI teaming", term: "Short-term", impact: "High impact" },
+    { action: "Implement end-to-end AI use case lifecycle management", term: "Mid-term", impact: "Medium impact" },
+    { action: "Deploy structured AI change management and adoption programme", term: "Long-term", impact: "Medium impact" },
+  ],
+  talent: [
+    { action: "Deepen ML engineering and data science bench strength", term: "Long-term", impact: "Medium impact" },
+    { action: "Scale general AI literacy programme to full 1,800-FTE workforce", term: "Short-term", impact: "High impact" },
+    { action: "Launch AI talent acquisition drive and retention incentives", term: "Mid-term", impact: "High impact" },
+    { action: "Build structured AI L&D curriculum with role-based learning tracks", term: "Mid-term", impact: "High impact" },
+    { action: "Train 200+ knowledge workers in prompt engineering and GenAI fluency", term: "Mid-term", impact: "High impact" },
+  ],
+  tech: [
+    { action: "Procure and deploy enterprise LLM platform (Azure OpenAI / Bedrock)", term: "Short-term", impact: "High impact" },
+    { action: "Upgrade cloud platform maturity to meet AI/ML workload demands", term: "Mid-term", impact: "High impact" },
+    { action: "Standardise AI/ML toolchain and mature LLMOps practices across teams", term: "Long-term", impact: "Medium impact" },
+    { action: "Redesign API and integration layer for agentic AI readiness", term: "Mid-term", impact: "High impact" },
+    { action: "Stand-up scalable model serving and real-time inference infrastructure", term: "Long-term", impact: "Medium impact" },
+  ],
+  org: [
+    { action: "Establish a dedicated AI Centre of Excellence (CoE)", term: "Short-term", impact: "High impact" },
+    { action: "Appoint permanent Head of AI or CDAO with board-level visibility", term: "Short-term", impact: "High impact" },
+    { action: "Embed AI product owners within each priority business function", term: "Mid-term", impact: "High impact" },
+    { action: "Stand-up cross-functional AI squads across all priority functions", term: "Mid-term", impact: "High impact" },
+    { action: "Define AI career pathways and role taxonomy for talent retention", term: "Long-term", impact: "Medium impact" },
+  ],
+  data: [
+    { action: "Build centralised cloud data lakehouse for all AI workloads", term: "Short-term", impact: "High impact" },
+    { action: "Implement enterprise data quality framework with SLA reporting", term: "Short-term", impact: "High impact" },
+    { action: "Deploy data catalogue with automated lineage and metadata tracking", term: "Mid-term", impact: "High impact" },
+    { action: "Stand-up feature store with versioned, reusable ML-ready datasets", term: "Mid-term", impact: "High impact" },
+    { action: "Architect RAG and document AI pipelines for unstructured data", term: "Short-term", impact: "High impact" },
+  ],
+  perf: [
+    { action: "Define AI ROI framework with standardised value tracking", term: "Short-term", impact: "High impact" },
+    { action: "Build AI KPI dashboard reported to CXO leadership monthly", term: "Short-term", impact: "High impact" },
+    { action: "Establish business outcome attribution for each AI initiative", term: "Mid-term", impact: "High impact" },
+    { action: "Implement AI pilot success criteria and stage-gate reviews", term: "Mid-term", impact: "Medium impact" },
+    { action: "Benchmark productivity gains vs pre-AI operational baselines", term: "Long-term", impact: "Medium impact" },
+  ],
+  gov: [
+    { action: "Maintain and reinforce AI ethics policy for responsible use", term: "Long-term", impact: "Medium impact" },
+    { action: "Deploy centralised model registry with full lifecycle tracking", term: "Mid-term", impact: "High impact" },
+    { action: "Mandate explainability and audit trails for all AI decisions", term: "Long-term", impact: "Medium impact" },
+    { action: "Strengthen data privacy and IP protection controls for AI systems", term: "Long-term", impact: "Medium impact" },
+    { action: "Formalise AI vendor governance with due-diligence standards", term: "Long-term", impact: "Medium impact" },
+  ],
+  risk: [
+    { action: "Deploy model risk management framework across all production AI models", term: "Short-term", impact: "High impact" },
+    { action: "Build regulatory compliance programme for EU AI Act and RBI", term: "Mid-term", impact: "High impact" },
+    { action: "Create AI incident response and escalation playbook", term: "Mid-term", impact: "High impact" },
+    { action: "Instrument continuous model monitoring and drift detection", term: "Long-term", impact: "Medium impact" },
+    { action: "Sustain and scale third-party AI vendor risk assessment programme", term: "Long-term", impact: "Medium impact" },
+  ],
+};
+
 // Roadmap durations: months -> roadmap blueprint
 export type DurationKey = 3 | 6 | 9 | 12;
 
