@@ -1,9 +1,56 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { auth } from "../lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const Login = () => {
   const [show, setShow] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await userCredential.user.getIdToken();
+
+      // 1. Check if admin
+      const adminRes = await fetch(`${API_BASE}/api/admin/verify`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (adminRes.ok) {
+        navigate("/admin/dashboard");
+        return;
+      }
+
+      // 2. Check if specialist
+      const specRes = await fetch(`${API_BASE}/api/specialist/verify`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (specRes.ok) {
+        navigate("/specialist/dashboard");
+        return;
+      }
+
+      // 3. Normal user
+      navigate("/dashboard");
+
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code ?? "";
+      setError(getErrorMessage(code));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-paper">
@@ -86,13 +133,13 @@ const Login = () => {
             Enter your credentials to continue.
           </p>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              navigate("/dashboard");
-            }}
-            className="mt-10 space-y-5"
-          >
+          {error && (
+            <div className="mt-5 px-4 py-3 border border-red-300 bg-red-50 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-10 space-y-5">
             <div>
               <label
                 htmlFor="email"
@@ -105,31 +152,38 @@ const Login = () => {
                 type="email"
                 autoComplete="email"
                 placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="w-full bg-paper-elevated border border-border px-4 py-3.5 text-ink placeholder:text-muted-foreground focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all"
               />
             </div>
 
             <div>
               <div className="flex items-baseline justify-between mb-2">
-                <label
-                  htmlFor="password"
-                  className="block text-[11px] uppercase tracking-[0.18em] text-muted-foreground font-medium"
-                >
-                  Password
-                </label>
-                <a
-                  href="#"
-                  className="text-xs text-ink hover:text-yellow-deep transition-colors"
-                >
-                  Forgot?
-                </a>
-              </div>
+  <label
+    htmlFor="password"
+    className="block text-[11px] uppercase tracking-[0.18em] text-muted-foreground font-medium"
+  >
+    Password
+  </label>
+
+  <Link
+    to="/forgot-password"
+    className="text-xs text-ink hover:text-yellow-deep transition-colors"
+  >
+    Forgot?
+  </Link>
+</div>
               <div className="relative">
                 <input
                   id="password"
                   type={show ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   className="w-full bg-paper-elevated border border-border px-4 py-3.5 pr-20 text-ink placeholder:text-muted-foreground focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all"
                 />
                 <button
@@ -152,29 +206,11 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-between bg-ink text-paper px-6 py-4 font-semibold hover:bg-ink-soft transition-colors group"
+              disabled={loading}
+              className="w-full inline-flex items-center justify-between bg-ink text-paper px-6 py-4 font-semibold hover:bg-ink-soft transition-colors group disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign in
+              {loading ? "Signing in…" : "Sign in"}
               <span className="text-yellow transition-transform group-hover:translate-x-1">→</span>
-            </button>
-
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-paper px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                  or
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="w-full inline-flex items-center justify-center gap-3 border border-border px-6 py-3.5 font-medium text-ink hover:border-ink hover:bg-paper-elevated transition-all"
-            >
-              <span className="h-4 w-4 rounded-full bg-yellow" />
-              Continue with SSO
             </button>
           </form>
 
@@ -193,4 +229,22 @@ const Login = () => {
   );
 };
 
+function getErrorMessage(code: string): string {
+  switch (code) {
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+    case "auth/invalid-credential":
+      return "Invalid email or password. Please try again.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/too-many-requests":
+      return "Too many failed attempts. Please try again later.";
+    case "auth/user-disabled":
+      return "This account has been disabled. Contact support.";
+    default:
+      return "Something went wrong. Please try again.";
+  }
+}
+
 export default Login;
+

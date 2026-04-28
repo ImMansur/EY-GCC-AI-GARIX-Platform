@@ -10,6 +10,8 @@ build/
 .env
 .env.local
 .env.*.local
+backend/.env
+frontend/.env
 
 # IDE / Editor
 .vscode/
@@ -34,3 +36,9 @@ venv/
 # Lock files (keep one per project)
 # package-lock.json
 # bun.lockb
+
+# Firebase service account (never commit secrets)
+backend/serviceAccountKey.json
+
+# Misc
+frontend/bun.lockb

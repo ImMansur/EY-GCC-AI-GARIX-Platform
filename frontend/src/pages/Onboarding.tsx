@@ -106,10 +106,10 @@ const Onboarding = () => {
   };
 
   const handleContinue = () => {
-    if (selectedRole) {
-      navigate("/assessment");
-    }
-  };
+  if (selectedProfile && selectedRole) {
+    navigate(`/assessment?persona=${encodeURIComponent(selectedProfile.label)}&role=${encodeURIComponent(selectedRole)}`);
+  }
+};
 
   return (
     <main className="min-h-screen flex flex-col bg-paper">

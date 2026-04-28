@@ -1,6 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { auth, db } from "../lib/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const cityOptions = [
   "Hyderabad", "Bengaluru", "Pune", "Chennai", "Gurugram",
@@ -17,9 +20,77 @@ const sectorOptions = [
   "Telecommunications", "Media & Entertainment", "Government & Public Sector", "Other",
 ];
 
+interface FormState {
+  name: string;
+  email: string;
+  company: string;
+  location: string;
+  size: string;
+  industry: string;
+  password: string;
+}
+
 const Signup = () => {
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    email: "",
+    company: "",
+    location: "",
+    size: "",
+    industry: "",
+    password: "",
+  });
   const navigate = useNavigate();
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Create Firebase Auth user
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+
+      // 2. Set display name
+      await updateProfile(user, { displayName: form.name });
+
+      // 3. Save profile to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: form.name,
+        email: form.email,
+        company: form.company,
+        location: form.location,
+        size: form.size,
+        industry: form.industry,
+        createdAt: serverTimestamp(),
+      });
+
+      navigate("/onboarding");
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code ?? "";
+      setError(getErrorMessage(code));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-paper">
@@ -102,13 +173,13 @@ const Signup = () => {
             Get started with your <span className="text-yellow-deep font-medium">GARIX</span> AI maturity assessment.
           </p>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              navigate("/onboarding");
-            }}
-            className="mt-6 space-y-3.5"
-          >
+          {error && (
+            <div className="mt-4 px-4 py-3 border border-red-300 bg-red-50 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-3.5">
             {/* Row 1: Name + Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
@@ -122,6 +193,9 @@ const Signup = () => {
                   id="name"
                   type="text"
                   placeholder="e.g. Priya Menon"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
                   className="w-full bg-paper-elevated border border-border px-3 py-2.5 text-sm text-ink placeholder:text-muted-foreground focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all"
                 />
               </div>
@@ -137,6 +211,9 @@ const Signup = () => {
                   type="email"
                   autoComplete="email"
                   placeholder="name@company.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
                   className="w-full bg-paper-elevated border border-border px-3 py-2.5 text-sm text-ink placeholder:text-muted-foreground focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all"
                 />
               </div>
@@ -155,6 +232,9 @@ const Signup = () => {
                   id="company"
                   type="text"
                   placeholder="e.g. Acme Corp GCC"
+                  value={form.company}
+                  onChange={handleChange}
+                  required
                   className="w-full bg-paper-elevated border border-border px-3 py-2.5 text-sm text-ink placeholder:text-muted-foreground focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all"
                 />
               </div>
@@ -168,16 +248,13 @@ const Signup = () => {
                 <div className="relative">
                   <select
                     id="location"
-                    defaultValue=""
+                    value={form.location}
+                    onChange={handleChange}
                     className="w-full bg-paper-elevated border border-border px-3 py-2.5 pr-9 text-sm text-ink focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all appearance-none"
                   >
-                    <option value="" disabled className="text-muted-foreground">
-                      Select city
-                    </option>
+                    <option value="" disabled>Select city</option>
                     {cityOptions.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
+                      <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -197,16 +274,13 @@ const Signup = () => {
                 <div className="relative">
                   <select
                     id="size"
-                    defaultValue=""
+                    value={form.size}
+                    onChange={handleChange}
                     className="w-full bg-paper-elevated border border-border px-3 py-2.5 pr-9 text-sm text-ink focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all appearance-none"
                   >
-                    <option value="" disabled className="text-muted-foreground">
-                      Select range
-                    </option>
+                    <option value="" disabled>Select range</option>
                     {sizeOptions.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
+                      <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -222,16 +296,13 @@ const Signup = () => {
                 <div className="relative">
                   <select
                     id="industry"
-                    defaultValue=""
+                    value={form.industry}
+                    onChange={handleChange}
                     className="w-full bg-paper-elevated border border-border px-3 py-2.5 pr-9 text-sm text-ink focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all appearance-none"
                   >
-                    <option value="" disabled className="text-muted-foreground">
-                      Select sector
-                    </option>
+                    <option value="" disabled>Select sector</option>
                     {sectorOptions.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
+                      <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -253,6 +324,10 @@ const Signup = () => {
                   type={show ? "text" : "password"}
                   autoComplete="new-password"
                   placeholder="At least 8 characters"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
                   className="w-full bg-paper-elevated border border-border px-3 py-2.5 pr-16 text-sm text-ink placeholder:text-muted-foreground focus:outline-none focus:border-ink focus:ring-2 focus:ring-yellow/40 transition-all"
                 />
                 <button
@@ -281,9 +356,10 @@ const Signup = () => {
             <div className="flex justify-center">
               <button
                 type="submit"
-                className="inline-flex items-center gap-3 bg-ink text-paper px-16 py-3 text-sm font-semibold hover:bg-ink-soft transition-colors group"
+                disabled={loading}
+                className="inline-flex items-center gap-3 bg-ink text-paper px-16 py-3 text-sm font-semibold hover:bg-ink-soft transition-colors group disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Create account
+                {loading ? "Creating account…" : "Create account"}
                 <span className="text-yellow transition-transform group-hover:translate-x-1">→</span>
               </button>
             </div>
@@ -303,5 +379,20 @@ const Signup = () => {
     </main>
   );
 };
+
+function getErrorMessage(code: string): string {
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "An account with this email already exists. Try signing in instead.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/weak-password":
+      return "Password is too weak. Use at least 8 characters.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Please try again later.";
+    default:
+      return "Something went wrong. Please try again.";
+  }
+}
 
 export default Signup;

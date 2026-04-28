@@ -1,93 +1,149 @@
-# EY GCC AI — GARIX Platform 
+# EY GCC AI Realized Index — AI-Powered Survey Platform
 
-**GARIX (GCC AI Readiness Index)** is a proprietary 5-stage diagnostic platform that helps Global Capability Centers (GCCs) assess where they stand on the path to AI maturity — from *AI Aware* to *AI Realized*.
+A full-stack AI survey application that assesses organizational readiness using intelligent questionnaires, generates diagnostic results, and produces personalized roadmaps. Built with **React + TypeScript** on the frontend and **FastAPI + Python** on the backend, powered by **Azure OpenAI** and **Firebase**.
 
-## Overview
+## Tech Stack
 
-The platform enables GCCs to:
-
-- Assess their AI maturity across key dimensions (Strategy, Data, Talent, Governance, Technology)
-- Visualize their current stage on the GARIX framework
-- Benchmark against industry peers
-- Get a tailored roadmap to advance toward AI at scale
+| Layer    | Technology                                                    |
+| -------- | ------------------------------------------------------------- |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Recharts |
+| Backend  | Python, FastAPI, Uvicorn                                      |
+| AI       | Azure OpenAI                                                  |
+| Auth/DB  | Firebase (Authentication + Firestore)                         |
+| Storage  | Azure Blob Storage                                            |
+| Reports  | ReportLab (PDF generation)                                    |
 
 ## Project Structure
 
 ```
-EY GCC AI/
-├── frontend/       # React frontend application
+├── package.json          # Root scripts (dev, build, install)
+├── frontend/             # React SPA
 │   ├── src/
-│   │   ├── pages/          # Route pages (Index, Login, Dashboard, Assessment, etc.)
-│   │   ├── components/
-│   │   │   ├── garix/      # GARIX-specific components (Hero, Framework, Diagnostic, etc.)
-│   │   │   ├── ui/         # Reusable UI components (shadcn/ui)
-│   │   │   └── dashboard/  # Dashboard visualizations (HeatMap, Radar, Roadmap, etc.)
-│   │   ├── hooks/          # Custom React hooks
-│   │   └── lib/            # Utility functions
-│   └── public/
-├── backend/        # Backend application (coming soon)
-├── .gitignore
-└── README.md
+│   │   ├── pages/        # Route pages (Survey, Results, Roadmap, Admin…)
+│   │   ├── components/   # UI components (shadcn/ui)
+│   │   ├── hooks/        # Custom React hooks
+│   │   └── lib/          # Firebase config, utilities
+│   └── ...
+├── backend/              # FastAPI API server
+│   └── app/
+│       ├── main.py       # App entry point & middleware
+│       ├── dimensions.py # Survey dimension definitions
+│       ├── firebase.py   # Firebase Admin SDK setup
+│       └── routes/       # API route handlers
+│           ├── admin.py
+│           ├── firebase.py
+│           ├── specialist.py
+│           └── ...
+└── ...
 ```
 
-## Tech Stack
+## Prerequisites
 
-### Frontend
-
-- **React 18** with TypeScript
-- **Vite** — build tool & dev server
-- **Tailwind CSS** — utility-first styling
-- **shadcn/ui** — component library (Radix UI primitives)
-- **React Router** — client-side routing
-- **TanStack React Query** — server state management
-- **Recharts** — charting & data visualization
-- **Vitest** — unit testing
-
-### Backend
-
-*To be added.*
+- **Node.js** ≥ 18
+- **Python** ≥ 3.10
+- **Firebase** project with Firestore & Authentication enabled
+- **Azure OpenAI** deployment
+- **Azure Blob Storage** account (for report storage)
 
 ## Getting Started
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18+)
-- [Bun](https://bun.sh/) or npm
-
-### Run the Frontend
+### 1. Clone the repository
 
 ```bash
-cd frontend
-npm install    # or: bun install
-npm run dev    # starts dev server at http://localhost:5173
+git clone https://github.com/ImMansur/EY-GCC-AI-GARIX-Platform.git
+cd EY-GCC-AI-GARIX-Platform
 ```
 
-### Other Commands
+### 2. Set up environment variables
 
-| Command           | Description              |
-| ----------------- | ------------------------ |
-| `npm run build`   | Production build         |
-| `npm run preview` | Preview production build |
-| `npm run lint`    | Run ESLint               |
-| `npm run test`    | Run tests with Vitest    |
+Copy the example files and fill in your credentials:
 
-## Pages
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
 
-| Route          | Description                              |
-| -------------- | ---------------------------------------- |
-| `/`            | Landing page — GARIX overview & framework |
-| `/login`       | User login                               |
-| `/signup`      | User registration                        |
-| `/onboarding`  | Initial onboarding flow                  |
-| `/assessment`  | AI maturity assessment                   |
-| `/dashboard`   | Results dashboard with benchmarks        |
+**Backend** (`backend/.env`):
+```
+AZURE_OPENAI_ENDPOINT=
+AZURE_OPENAI_API_KEY=
+AZURE_OPENAI_DEPLOYMENT=
+AZURE_OPENAI_API_VERSION=
+GOOGLE_APPLICATION_CREDENTIALS=
+SMTP_EMAIL=
+SMTP_PASSWORD=
+ADMIN_EMAIL=
+AZURE_STORAGE_CONNECTION_STRING=
+BLOB_CONTAINER_NAME=gcc-ai
+```
 
-## GARIX Framework — 5 Stages
+**Frontend** (`frontend/.env`):
+```
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_MEASUREMENT_ID=
+```
 
-| Stage | Name          | Score   | Summary                              |
-| ----- | ------------- | ------- | ------------------------------------ |
-| 01    | AI Aware      | 1.0–2.0 | Curious but uncommitted              |
-| 02    | AI Embedded   | 2.0–3.0 | Structured & intentional             |
-| 03    | AI Scaled     | 3.0–4.0 | Systematic & production-grade        |
-| 04    | AI Native     | 4.0–4.5 | AI-first culture & decision-making   |
-| 05    | AI Realized   | 4.5–5.0 | Compounding, measurable value at scale |
+### 3. Place your Firebase Admin SDK key
+
+Download your service account key from the Firebase Console and save it as:
+
+```
+backend/serviceAccountKey.json
+```
+
+### 4. Install dependencies
+
+```bash
+npm run install:all
+```
+
+Or manually:
+
+```bash
+cd frontend && npm install
+cd ../backend && pip install -r requirements.txt
+```
+
+### 5. Run the development servers
+
+From the project root:
+
+```bash
+# Frontend (port 8080)
+npm run dev:frontend
+
+# Backend (port 8000)
+npm run dev:backend
+```
+
+> **Note:** The `install:all`, `dev:frontend`, and `dev:backend` scripts are defined in the root `package.json` for convenience. Make sure your `package.json` includes these scripts to streamline setup and development.
+
+## API Endpoints
+
+| Method | Endpoint        | Description             |
+| ------ | --------------- | ----------------------- |
+| GET    | `/api/health`   | Health check            |
+| *      | `/api/questions` | Survey questions        |
+| *      | `/api/surveys`   | Survey submissions      |
+| *      | `/api/users`     | User management         |
+| *      | `/api/roadmap`   | AI-generated roadmaps   |
+| *      | `/api/admin`     | Admin operations        |
+| *      | `/api/diagnostic`| Diagnostic analysis     |
+
+## Scripts
+
+| Command                | Description                        |
+| ---------------------- | ---------------------------------- |
+| `npm run dev:frontend` | Start frontend dev server          |
+| `npm run dev:backend`  | Start backend with hot reload      |
+| `npm run build:frontend` | Build frontend for production    |
+| `npm run install:all`  | Install all dependencies           |
+
+## License
+
+This project is private.
