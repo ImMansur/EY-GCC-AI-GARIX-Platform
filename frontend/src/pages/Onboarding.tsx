@@ -20,9 +20,9 @@ const profiles: Profile[] = [
     questions: 14,
     accent: "text-yellow",
     accentBg: "bg-yellow/10 border-yellow/40",
-    description:
-      "GCC Head / MD, COO, Transformation Lead. Own the AI strategy, investment mandate, and transformation accountability. Primary respondents for Strategy and Performance & Value.",
-    roles: ["GCC Head / MD", "COO", "Strategy Lead"],
+    description: "GCC Head, Managing Director, COO, and Strategy Officer. Own the AI strategy, investment mandate, and transformation accountability. Primary respondents for Strategy and Performance & Value dimensions.",
+    
+    roles: ["GCC Head", "Managing Director (MD)", "Chief Operating Officer (COO)", "Strategy Officer"],
   },
   {
     key: "B",
@@ -31,8 +31,8 @@ const profiles: Profile[] = [
     accent: "text-blue-400",
     accentBg: "bg-blue-400/10 border-blue-400/40",
     description:
-      "CTO, VP Engineering, Head of IT. Primary respondents for Platform & Technology dimension — cloud, LLM platform, MLOps, API architecture, and AI tooling decisions.",
-    roles: ["CTO / VP Engineering", "Head of IT"],
+      "CIO,CTO, VP Engineering, Head of IT. Primary respondents for Platform & Technology dimension — cloud, LLM platform, MLOps, API architecture, and AI tooling decisions.",
+    roles: ["CIO","CTO / VP Engineering", "Head of IT"],
   },
   {
     key: "C",
@@ -70,9 +70,9 @@ const profiles: Profile[] = [
     questions: 8,
     accent: "text-amber-400",
     accentBg: "bg-amber-400/10 border-amber-400/40",
-    description:
-      "Heads of Finance Ops, Risk Analytics, IT Operations. Own the Process dimension — how AI is (or isn't) embedded in actual day-to-day workflows and value generation.",
-    roles: ["Head of Finance Ops", "Head of Risk", "Operations Lead"],
+    description: "Heads of Finance Ops, Procurement & Supply Chain, IT Operations. Own the Process dimension — how AI is (or isn't) embedded in actual day-to-day workflows and value generation.",
+
+    roles: ["Head of Finance Ops", "Head of Procurement & Supply Chain", "Operations Lead"],
   },
   {
     key: "G",
