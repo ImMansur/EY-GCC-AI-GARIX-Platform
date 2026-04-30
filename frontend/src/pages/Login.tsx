@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { auth } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -41,8 +42,26 @@ const Login = () => {
         return;
       }
 
-      // 3. Normal user
-      navigate("/dashboard");
+
+
+      // 3. Normal user: fetch latest survey for user and redirect
+      const user = userCredential.user;
+      let latestSurveyId = null;
+      try {
+        const surveysRef = collection(db, "users", user.uid, "surveys");
+        const q = query(surveysRef, orderBy("submitted_at", "desc"), limit(1));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          latestSurveyId = querySnapshot.docs[0].id;
+        }
+      } catch (e) {
+        // Optionally handle error
+      }
+      if (latestSurveyId) {
+        navigate(`/dashboard?id=${latestSurveyId}`);
+      } else {
+        navigate("/dashboard");
+      }
 
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? "";

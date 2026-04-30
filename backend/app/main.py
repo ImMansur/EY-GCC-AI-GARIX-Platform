@@ -10,7 +10,7 @@ from azure.storage.blob import BlobServiceClient
 load_dotenv()
 
 # Routers
-from app.routes import admin, specialist
+from app.routes import admin, specialist, surveys, benchmarks
 
 # Utils
 from generate_questions import generate_questions
@@ -34,6 +34,8 @@ app.add_middleware(
 # -------------------- ROUTES --------------------
 app.include_router(admin.router, prefix="/api")
 app.include_router(specialist.router, prefix="/api")
+app.include_router(surveys.router, prefix="/api")
+app.include_router(benchmarks.router, prefix="/api")
 
 @app.get("/")
 def root():

@@ -3,7 +3,7 @@ DIMENSIONS = [
         "id": 1,
         "name": "Strategy",
         "sub_dimensions": [
-            "AI vision clarity and executive mandate",
+            "AI Vision Clarity and Executive Mandate",
             "Multi year AI investment roadmap",
             "AI use case portfolio prioritisation"
         ]

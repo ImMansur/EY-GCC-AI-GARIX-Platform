@@ -2,18 +2,23 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Flag, CheckCircle2 } from "lucide-react";
+import { auth } from "@/lib/firebase";
 
 interface Option {
   key: string;
+  value: number;
   label: string;
   description: string;
 }
 
 interface Question {
   id: number;
+  dimension_id: number;
+  dimension_name: string;
+  sub_dimension_id: string;
+  sub_dimension: string;
   question: string;
   options: Option[];
-  dimension_name: string;
 }
 
 interface DimensionDef {
@@ -41,47 +46,51 @@ type Answers = Record<number, string>;
 const Assessment = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState(0); // 0: initial, 1: tailoring, 2: finalizing, 3: done
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams(); 
   const persona = searchParams.get("persona");
-  const role = searchParams.get("role"); // ← inside component
-
+  const role = searchParams.get("role");
 
   const [activeDimIdx, setActiveDimIdx] = useState(0);
   const [activeQIdx, setActiveQIdx] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
   const [shuffledOptionsMap, setShuffledOptionsMap] = useState<Record<number, any[]>>({});
- 
+
+  // Multi-stage loading effect
+  useEffect(() => {
+    if (!loading) return;
+    if (loadingStage < 2) {
+      const t = setTimeout(() => setLoadingStage(s => s + 1), 700);
+      return () => clearTimeout(t);
+    }
+  }, [loading, loadingStage]);
 
   useEffect(() => {
     const cacheKey = `assessment_questions_${persona}_${role}`;
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
-  const parsed = JSON.parse(cached);
-  setQuestions(parsed);
-
-  // ✅ ADD SHUFFLE HERE
-  const sMap: Record<number, any[]> = {};
-
-  const optionKeys = ['A', 'B', 'C', 'D', 'E'];
-  parsed.forEach((q: any) => {
-    // Shuffle only the answer content, not the keys
-    const shuffled = [...q.options].sort(() => Math.random() - 0.5);
-    sMap[q.id] = optionKeys.map((key, idx) => ({
-      key,
-      label: shuffled[idx]?.label ?? '',
-      description: shuffled[idx]?.description ?? '',
-    }));
-  });
-
-  setShuffledOptionsMap(sMap);
-
-  setLoading(false);
-  return;
-}
-    
-
+      const parsed = JSON.parse(cached);
+      setQuestions(parsed);
+      // Sort options so E (value 5) is always the right/correct answer
+      const sMap: Record<number, any[]> = {};
+      const optionKeys = ['A', 'B', 'C', 'D', 'E'];
+      parsed.forEach((q: any) => {
+        const sorted = [...q.options].sort((a, b) => (a.value || 0) - (b.value || 0));
+        sMap[q.id] = optionKeys.map((key, idx) => ({
+          key,
+          value: sorted[idx]?.value ?? idx + 1,
+          label: sorted[idx]?.label ?? '',
+          description: sorted[idx]?.description ?? '',
+        }));
+      });
+      setShuffledOptionsMap(sMap);
+      // Wait for staged loading to finish
+      setTimeout(() => setLoading(false), 1800);
+      return;
+    }
     fetch("http://localhost:8000/generate-questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -89,36 +98,30 @@ const Assessment = () => {
     })
       .then(res => res.json())
       .then(data => {
-  if (!data.questions || !Array.isArray(data.questions)) {
-    setQuestions([]);
-    setLoading(false);
-    return;
-  }
-
-  sessionStorage.setItem(cacheKey, JSON.stringify(data.questions));
-  setQuestions(data.questions);
-
-  // ✅ ADD THIS BLOCK (shuffle here)
-  const sMap: Record<number, any[]> = {};
-
-  const optionKeys = ['A', 'B', 'C', 'D', 'E'];
-  data.questions.forEach((q: any) => {
-    const shuffled = [...q.options].sort(() => Math.random() - 0.5);
-    sMap[q.id] = optionKeys.map((key, idx) => ({
-      key,
-      label: shuffled[idx]?.label ?? '',
-      description: shuffled[idx]?.description ?? '',
-    }));
-  });
-
-  setShuffledOptionsMap(sMap);
-
-  setLoading(false);
-})
-     
+        if (!data.questions || !Array.isArray(data.questions)) {
+          setQuestions([]);
+          setTimeout(() => setLoading(false), 1800);
+          return;
+        }
+        sessionStorage.setItem(cacheKey, JSON.stringify(data.questions));
+        setQuestions(data.questions);
+        const sMap: Record<number, any[]> = {};
+        const optionKeys = ['A', 'B', 'C', 'D', 'E'];
+        data.questions.forEach((q: any) => {
+          const sorted = [...q.options].sort((a, b) => (a.value || 0) - (b.value || 0));
+          sMap[q.id] = optionKeys.map((key, idx) => ({
+            key,
+            value: sorted[idx]?.value ?? idx + 1,
+            label: sorted[idx]?.label ?? '',
+            description: sorted[idx]?.description ?? '',
+          }));
+        });
+        setShuffledOptionsMap(sMap);
+        setTimeout(() => setLoading(false), 1800);
+      })
       .catch(err => {
         console.error(err);
-        setLoading(false);
+        setTimeout(() => setLoading(false), 1800);
       });
   }, [persona, role]);
   if (!persona || !role) {
@@ -145,19 +148,22 @@ const Assessment = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-paper">
-        <div className="text-center">
-          <div className="text-2xl font-semibold text-ink mb-2">Generating your assessment...</div>
-          <div className="text-sm text-muted-foreground">This may take up to 60 seconds</div>
+      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans">
+        <div className="h-8 w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="text-ink-soft text-sm uppercase tracking-wider font-semibold animate-pulse mb-1">
+          {`Tailoring questions for ${role ? role : "your role"} in ${persona ? persona : "your area"}...`}
         </div>
       </div>
     );
   }
 
-  if (!question) {
+
+  if (submitting) {
     return (
-      <div className="flex h-screen items-center justify-center bg-paper">
-        <div className="text-sm text-muted-foreground">No questions found.</div>
+      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans">
+        <div className="h-8 w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="text-ink-soft text-lg font-semibold mb-1">Processing your assessment...</div>
+        <div className="text-muted-foreground text-sm">Generating your GARIX maturity profile</div>
       </div>
     );
   }
@@ -182,6 +188,62 @@ const Assessment = () => {
     });
   };
 
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    
+    const answerItems = questions.map(q => {
+      const selectedKey = answers[q.id];
+      const allOptions = shuffledOptionsMap[q.id] || [];
+      const selectedOption = allOptions.find(opt => opt.key === selectedKey);
+      
+      return {
+        dimension_id: q.dimension_id || 1,
+        dimension_name: q.dimension_name,
+        sub_dimension_id: q.sub_dimension_id || q.id,
+        sub_dimension_name: q.sub_dimension || q.question.substring(0, 30),
+        question: q.question,
+        selected_option: selectedOption?.value || 1,
+        option_label: selectedOption?.label || "",
+        option_description: selectedOption?.description || "",
+        all_options: allOptions.map(opt => ({
+          value: opt.value,
+          label: opt.label,
+          description: opt.description
+        }))
+      };
+    });
+
+    const user = auth.currentUser;
+    const payload = {
+      uid: user ? user.uid : "user_" + Math.random().toString(36).substr(2, 9),
+      persona: persona || "Business Strategy",
+      role: role || "Executive",
+      sector: searchParams.get("sector") || "Technology",
+      answers: answerItems
+    };
+
+    try {
+      const res = await fetch("http://localhost:8000/api/survey/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert("Backend Error: " + JSON.stringify(data));
+        setSubmitting(false);
+        return;
+      }
+      // Clean up legacy local storage if it exists
+      localStorage.removeItem("garix_survey_result");
+      navigate(`/dashboard?id=${data.survey_id}`);
+    } catch (err) {
+      console.error("Survey submission failed:", err);
+      setSubmitting(false);
+      navigate("/dashboard");
+    }
+  };
+
   const goNext = () => {
     if (activeQIdx < filteredQuestions.length - 1) {
       setActiveQIdx((i) => i + 1);
@@ -189,7 +251,7 @@ const Assessment = () => {
       setActiveDimIdx((i) => i + 1);
       setActiveQIdx(0);
     } else {
-      navigate("/dashboard");
+      handleSubmit();
     }
   };
 
@@ -359,6 +421,17 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
               </span>
               <span className="h-px w-8 bg-border" />
             </div>
+            <div className="mb-6">
+  <div className="inline-flex items-center gap-2">
+    <span className="h-px w-4 bg-yellow-deep" />
+    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+      Focus Area
+    </span>
+  </div>
+  <div className="mt-2 text-sm font-semibold text-ink leading-snug">
+    {question.sub_dimension?.replace(/^[^-]+-\s*/, "")}
+  </div>
+</div>
 
             {/* Question text — display-serif matching Index page headings */}
             <h2 className="display-serif text-2xl md:text-[1.7rem] font-light text-ink leading-relaxed mb-8 text-balance">
@@ -442,14 +515,15 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
 
           <button
             onClick={goNext}
+            disabled={submitting}
             className={cn(
               "inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold transition-all",
-              currentAnswer
+              currentAnswer && !submitting
                 ? "bg-yellow text-ink hover:shadow-yellow"
-                : "bg-muted text-muted-foreground cursor-default"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
             )}
           >
-            {isLast ? "Submit" : "Next"}
+            {submitting ? "Submitting..." : isLast ? "Submit" : "Next"}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

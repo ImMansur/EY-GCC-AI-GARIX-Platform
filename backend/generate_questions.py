@@ -106,9 +106,15 @@ Return JSON:
             keys = ["A", "B", "C", "D", "E"]
             for i, opt in enumerate(question["options"]):
                 opt["key"] = keys[i]
+                opt["value"] = i + 1
+            
+            
 
-            # ✅ ADD ID
+            # ✅ ADD ID & SUB-DIMENSION METADATA
             question["id"] = len(all_questions) + 1
+            question["sub_dimension"] = sub
+            question["sub_dimension_id"] = slugify(sub)
+            
 
             # ✅ ADD TO LIST
             all_questions.append(question)

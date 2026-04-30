@@ -1,21 +1,25 @@
 import { stages } from "./data";
+import { useDashboardData } from "./DashboardContext";
 import { Check } from "lucide-react";
 
 export const StageJourney = () => {
+  const { clientProfile } = useDashboardData();
+  
   return (
     <div className="relative">
       {/* progress rail */}
       <div className="absolute left-0 right-0 top-7 h-px bg-border" aria-hidden />
       <div
-        className="absolute left-0 top-7 h-px bg-gradient-to-r from-stage-1 via-stage-2 to-yellow"
-        style={{ width: "30%" }}
+        className="absolute left-0 top-7 h-px bg-gradient-to-r from-stage-1 via-stage-2 to-yellow transition-all duration-1000"
+        style={{ width: `${Math.max(0, Math.min(100, ((clientProfile.composite - 1) / 4) * 100))}%` }}
         aria-hidden
       />
 
       <ol className="relative grid grid-cols-5 gap-2">
         {stages.map((s) => {
-          const isCurrent = s.state === "current";
-          const isDone = s.state === "completed";
+          const isCurrent = s.n === clientProfile.currentStage;
+          const isDone = s.n < clientProfile.currentStage;
+          const target = clientProfile.targets.find(t => t.stage === s.n);
           return (
             <li key={s.n} className="flex flex-col items-center text-center group">
               <div
@@ -50,9 +54,10 @@ export const StageJourney = () => {
                   {s.label}
                 </div>
                 <div className="mt-1 text-[10px] text-muted-foreground min-h-[14px]">
-                  {isCurrent && `★ Current · ${s.score}`}
+                  {isCurrent && `★ Current · ${clientProfile.composite.toFixed(1)}`}
                   {isDone && "Completed"}
-                  {s.state === "target" && `Target · ${s.eta}`}
+                  {!isCurrent && !isDone && target && `Target · ${target.in}`}
+                  {!isCurrent && !isDone && !target && "Target"}
                 </div>
               </div>
             </li>

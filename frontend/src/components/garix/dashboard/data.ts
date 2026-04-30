@@ -45,140 +45,77 @@ export const stages = [
 
 export const dimensions: Dimension[] = [
   {
-    key: "strategy",
-    name: "Strategy",
-    short: "Strategy",
-    score: 2.0,
-    stage: "Embedded",
-    weight: 1.5,
+    key: "strategy", name: "Strategy", short: "Strategy", score: 2.0, stage: "Embedded", weight: 1.5,
     indicators: [
-      { name: "AI vision clarity & executive mandate", client: 2.2, peer: 3.0, gap: -0.8, priority: "HIGH" },
-      { name: "Multi-year AI investment roadmap", client: 1.8, peer: 2.8, gap: -1.0, priority: "CRITICAL" },
-      { name: "Parent organisation alignment on AI agenda", client: 2.1, peer: 2.6, gap: -0.5, priority: "HIGH" },
-      { name: "AI use case portfolio prioritisation", client: 2.4, peer: 2.7, gap: -0.3, priority: "MONITOR" },
-      { name: "AI budget governance & accountability", client: 1.5, peer: 2.5, gap: -1.0, priority: "CRITICAL" },
-    ],
+      { name: "AI Vision Clarity and executive Mandate", client: 2.2, peer: 3.0, gap: -0.8, priority: "HIGH" },
+      { name: "Multi year AI investment roadmap", client: 1.8, peer: 2.8, gap: -1.0, priority: "CRITICAL" },
+      { name: "AI use case portfolio prioritisation", client: 2.1, peer: 2.6, gap: -0.5, priority: "HIGH" }
+    ]
   },
   {
-    key: "process",
-    name: "Process",
-    short: "Process",
-    score: 2.4,
-    stage: "Embedded",
-    weight: 1,
+    key: "process", name: "Process", short: "Process", score: 2.4, stage: "Embedded", weight: 1,
     indicators: [
-      { name: "AI-augmented process identification & mapping", client: 2.3, peer: 2.8, gap: -0.5, priority: "HIGH" },
-      { name: "Agile AI delivery model & sprint cadence", client: 3.2, peer: 2.6, gap: 0.6, priority: "STRENGTH" },
-      { name: "Human-AI teaming & workflow redesign", client: 1.4, peer: 2.5, gap: -1.1, priority: "CRITICAL" },
-      { name: "AI use case lifecycle management", client: 2.5, peer: 2.7, gap: -0.2, priority: "MONITOR" },
-      { name: "Change management for AI adoption", client: 2.2, peer: 2.5, gap: -0.3, priority: "MONITOR" },
-    ],
+      { name: "AI augmented process identification and mapping", client: 2.3, peer: 2.8, gap: -0.5, priority: "HIGH" },
+      { name: "Human AI teaming and workflow redesign", client: 3.2, peer: 2.6, gap: 0.6, priority: "STRENGTH" },
+      { name: "AI use case lifecycle management", client: 1.4, peer: 2.5, gap: -1.1, priority: "CRITICAL" }
+    ]
   },
   {
-    key: "talent",
-    name: "Talent & Skills",
-    short: "Talent",
-    score: 2.2,
-    stage: "Embedded",
-    weight: 1,
+    key: "talent", name: "Talent & Skills", short: "Talent", score: 2.2, stage: "Embedded", weight: 1,
     indicators: [
-      { name: "ML engineering & data science depth", client: 2.5, peer: 2.6, gap: -0.1, priority: "STRENGTH" },
-      { name: "General workforce AI literacy (%)", client: 1.2, peer: 2.4, gap: -1.2, priority: "CRITICAL" },
-      { name: "AI talent acquisition & retention", client: 1.8, peer: 2.6, gap: -0.8, priority: "HIGH" },
-      { name: "Structured AI learning & development programmes", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
-      { name: "Prompt engineering & GenAI fluency", client: 1.4, peer: 2.2, gap: -0.8, priority: "HIGH" },
-    ],
+      { name: "ML engineering and data science depth", client: 2.5, peer: 2.6, gap: -0.1, priority: "STRENGTH" },
+      { name: "General workforce AI literacy", client: 1.2, peer: 2.4, gap: -1.2, priority: "CRITICAL" },
+      { name: "AI talent acquisition and retention", client: 1.8, peer: 2.6, gap: -0.8, priority: "HIGH" }
+    ]
   },
   {
-    key: "tech",
-    name: "Platform & Technology",
-    short: "Platform",
-    score: 1.8,
-    stage: "Aware",
-    weight: 1,
+    key: "tech", name: "Platform & Technology", short: "Platform", score: 1.8, stage: "Aware", weight: 1,
     indicators: [
-      { name: "Enterprise LLM platform (Azure OpenAI / Bedrock)", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
-      { name: "Cloud platform maturity", client: 2.4, peer: 3.2, gap: -0.8, priority: "HIGH" },
-      { name: "AI/ML tooling standardisation & LLMOps", client: 2.2, peer: 2.4, gap: -0.2, priority: "STRENGTH" },
-      { name: "API & integration architecture (agentic-readiness)", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
-      { name: "Real-time inference & model serving infrastructure", client: 1.8, peer: 2.2, gap: -0.4, priority: "MONITOR" },
-    ],
+      { name: "Cloud platform maturity", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
+      { name: "AI ML tooling standardisation and LLMOps", client: 2.4, peer: 3.2, gap: -0.8, priority: "HIGH" },
+      { name: "Real time inference and model serving infrastructure", client: 2.2, peer: 2.4, gap: -0.2, priority: "STRENGTH" }
+    ]
   },
   {
-    key: "org",
-    name: "Organisation",
-    short: "Org Design",
-    score: 1.8,
-    stage: "Aware",
-    weight: 1,
+    key: "org", name: "Organisation", short: "Org Design", score: 1.8, stage: "Aware", weight: 1,
     indicators: [
       { name: "Dedicated AI CoE or centre of competency", client: 1.0, peer: 3.0, gap: -2.0, priority: "CRITICAL" },
-      { name: "AI leadership role (Head of AI / CDAO)", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
-      { name: "AI embedded within business functions", client: 2.2, peer: 2.8, gap: -0.6, priority: "HIGH" },
-      { name: "Cross-functional AI squad model", client: 1.8, peer: 2.4, gap: -0.6, priority: "HIGH" },
-      { name: "AI career paths & role taxonomy", client: 2.0, peer: 2.3, gap: -0.3, priority: "MONITOR" },
-    ],
+      { name: "AI leadership role Head of AI or CDAO", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
+      { name: "Embedded AI within business functions", client: 2.2, peer: 2.8, gap: -0.6, priority: "HIGH" }
+    ]
   },
   {
-    key: "data",
-    name: "Data",
-    short: "Data",
-    score: 1.6,
-    stage: "Aware",
-    weight: 1,
+    key: "data", name: "Data", short: "Data", score: 1.6, stage: "Aware", weight: 1,
     indicators: [
-      { name: "Centralised data lake / warehouse", client: 1.0, peer: 3.0, gap: -2.0, priority: "CRITICAL" },
-      { name: "Data quality framework & SLAs", client: 1.2, peer: 2.5, gap: -1.3, priority: "CRITICAL" },
-      { name: "Data cataloguing & lineage tracking", client: 1.5, peer: 2.4, gap: -0.9, priority: "HIGH" },
-      { name: "Feature store & ML-ready datasets", client: 1.8, peer: 2.3, gap: -0.5, priority: "HIGH" },
-      { name: "Unstructured data strategy (RAG, document AI)", client: 1.0, peer: 2.0, gap: -1.0, priority: "CRITICAL" },
-    ],
+      { name: "Centralised data lake or warehouse", client: 1.0, peer: 3.0, gap: -2.0, priority: "CRITICAL" },
+      { name: "Data quality framework and SLAs", client: 1.2, peer: 2.5, gap: -1.3, priority: "CRITICAL" },
+      { name: "Data cataloguing and lineage tracking", client: 1.5, peer: 2.4, gap: -0.9, priority: "HIGH" }
+    ]
   },
   {
-    key: "perf",
-    name: "Performance & Value",
-    short: "Perf.",
-    score: 1.5,
-    stage: "Aware",
-    weight: 1,
+    key: "perf", name: "Performance & Value", short: "Perf.", score: 1.5, stage: "Aware", weight: 1,
     indicators: [
-      { name: "AI ROI framework & value tracking methodology", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
-      { name: "AI KPI dashboard reported to leadership", client: 1.2, peer: 2.4, gap: -1.2, priority: "CRITICAL" },
-      { name: "Business outcome attribution to AI initiatives", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
-      { name: "AI pilot success criteria & gate reviews", client: 1.8, peer: 2.2, gap: -0.4, priority: "MONITOR" },
-      { name: "Productivity benchmark vs pre-AI baseline", client: 1.8, peer: 2.0, gap: -0.2, priority: "MONITOR" },
-    ],
+      { name: "AI ROI framework and value tracking methodology", client: 1.0, peer: 2.5, gap: -1.5, priority: "CRITICAL" },
+      { name: "AI KPI dashboards reported to leadership", client: 1.2, peer: 2.4, gap: -1.2, priority: "CRITICAL" },
+      { name: "Business outcome attribution to AI initiatives", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" }
+    ]
   },
   {
-    key: "gov",
-    name: "Governance",
-    short: "Governance",
-    score: 2.0,
-    stage: "Embedded",
-    weight: 1,
+    key: "gov", name: "Governance", short: "Governance", score: 2.0, stage: "Embedded", weight: 1,
     indicators: [
-      { name: "AI ethics policy & responsible use framework", client: 2.5, peer: 2.6, gap: -0.1, priority: "STRENGTH" },
-      { name: "Model registry & inventory management", client: 1.5, peer: 2.4, gap: -0.9, priority: "HIGH" },
-      { name: "AI audit trail & explainability requirements", client: 2.0, peer: 2.3, gap: -0.3, priority: "MONITOR" },
-      { name: "Data privacy & IP protection controls", client: 2.2, peer: 2.5, gap: -0.3, priority: "MONITOR" },
-      { name: "AI procurement & vendor governance", client: 1.8, peer: 2.2, gap: -0.4, priority: "MONITOR" },
-    ],
+      { name: "AI ethics policy and responsible use framework", client: 2.5, peer: 2.6, gap: -0.1, priority: "STRENGTH" },
+      { name: "Model registry and model inventory management", client: 1.5, peer: 2.4, gap: -0.9, priority: "HIGH" },
+      { name: "AI audit trail and explainability requirements", client: 2.0, peer: 2.3, gap: -0.3, priority: "MONITOR" }
+    ]
   },
   {
-    key: "risk",
-    name: "Risk Management",
-    short: "Risk",
-    score: 1.9,
-    stage: "Aware",
-    weight: 1.5,
+    key: "risk", name: "Risk Management", short: "Risk", score: 1.9, stage: "Aware", weight: 1.5,
     indicators: [
-      { name: "Model risk management framework (MRM)", client: 1.2, peer: 2.5, gap: -1.3, priority: "CRITICAL" },
-      { name: "Regulatory compliance (EU AI Act / RBI)", client: 1.8, peer: 2.5, gap: -0.7, priority: "HIGH" },
-      { name: "AI incident response & escalation playbook", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" },
-      { name: "Model performance monitoring & drift detection", client: 2.2, peer: 2.4, gap: -0.2, priority: "MONITOR" },
-      { name: "Third-party AI vendor risk assessment", client: 2.8, peer: 2.4, gap: 0.4, priority: "STRENGTH" },
-    ],
-  },
+      { name: "Model risk management framework MRM", client: 1.2, peer: 2.5, gap: -1.3, priority: "CRITICAL" },
+      { name: "Regulatory compliance EU AI Act or RBI guidelines", client: 1.8, peer: 2.5, gap: -0.7, priority: "HIGH" },
+      { name: "AI incident response and escalation playbook", client: 1.5, peer: 2.3, gap: -0.8, priority: "HIGH" }
+    ]
+  }
 ];
 
 export type BenchmarkTone = "self" | "behind" | "ahead" | "neutral";
@@ -620,13 +557,12 @@ export const roadmapPlans: Record<DurationKey, RoadmapPlan> = {
   },
 };
 
-export type FindingType = "STRENGTH" | "BLOCKER" | "CRITICAL" | "RISK";
-
 export interface Finding {
-  type: FindingType;
   label: string;
   title: string;
+  subtitle: string;
   points: string[];
+  dimensionKey?: string;
 }
 
 export interface DimensionTab {
@@ -649,42 +585,46 @@ export const dimensionTabs: DimensionTab[] = [
 
 export const findings: Finding[] = [
   {
-    type: "STRENGTH",
-    label: "Strategic appetite",
-    title: "14 AI use cases identified, 3 in active pilot",
+    label: "STRENGTH",
+    title: "STAGE 2 BASELINE ESTABLISHED",
+    subtitle: "14 AI use cases identified, 3 in active pilot",
     points: [
-      "Genuine strategic appetite at the GCC level — broad portfolio across automation, analytics and GenAI.",
-      "Raw material to advance from Stage 2 to Stage 3 with the right prioritisation.",
+      "There is genuine strategic appetite at the GCC level, with a broad portfolio across automation, analytics, and GenAI.",
+      "This provides the necessary raw material to advance from Stage 2 to Stage 3 with the right prioritisation and focused execution."
     ],
+    dimensionKey: "strategy"
   },
   {
-    type: "BLOCKER",
-    label: "Stage-progression blocker",
-    title: "No multi-year AI investment roadmap approved by parent",
+    label: "STAGE-PROGRESSION BLOCKER",
+    title: "INVESTMENT COMMITMENT",
+    subtitle: "No multi-year AI investment roadmap approved by parent",
     points: [
-      "AI funded project-by-project without a committed 3-year transformation budget.",
-      "Prevents sequential infrastructure investment (data → LLM platform → CoE).",
-      "Securing a 3-year AI transformation budget from HQ is the most important strategic action.",
+      "AI is currently funded project-by-project without a committed 3-year transformation budget.",
+      "This prevents sequential infrastructure investments, such as moving from data foundations to an enterprise LLM platform and finally a CoE.",
+      "Securing a 3-year AI transformation budget from HQ is the most important strategic action to unlock progress."
     ],
+    dimensionKey: "strategy"
   },
   {
-    type: "CRITICAL",
-    label: "Critical gap — leadership alignment",
-    title: "AI strategy not translated into operating model design",
+    label: "CRITICAL GAP",
+    title: "LEADERSHIP ALIGNMENT",
+    subtitle: "AI strategy not yet translated into GCC operating model design",
     points: [
-      "Strategy exists at directional level but hasn't cascaded into org design, role profiles or process maps.",
+      "The AI strategy document exists at a directional level but has not been cascaded into org design changes, revised role profiles, or updated process maps.",
       "Strategy without structural consequence remains aspiration.",
-      "Requires an AI Transformation Programme with named lead and cross-functional workstreams.",
+      "A structured AI Transformation Programme with a named programme lead and cross-functional workstreams is required to convert strategy into operating model change."
     ],
+    dimensionKey: "strategy"
   },
   {
-    type: "RISK",
-    label: "Risk — budget governance gap",
-    title: "AI spend accountability fragmented across 5 budget holders",
+    label: "RISK",
+    title: "BUDGET GOVERNANCE GAP",
+    subtitle: "AI spend accountability fragmented across 5 budget holders",
     points: [
-      "Spending distributed across technology, HR and function heads without consolidated P&L view.",
-      "Prevents ROI attribution, creates duplication risk, blocks coherent investment case to parent.",
-      "Centralising AI budget under future Head of AI is a 60-day action.",
+      "Spending is distributed across technology, HR, and function heads without a consolidated P&L view.",
+      "This fragmentation prevents accurate ROI attribution, creates massive duplication risk, and blocks a coherent investment case to the parent organisation.",
+      "Centralising the AI budget under the future Head of AI is a necessary and immediate 60-day action."
     ],
-  },
+    dimensionKey: "strategy"
+  }
 ];

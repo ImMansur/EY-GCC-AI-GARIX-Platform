@@ -1,6 +1,7 @@
-import { benchmarks, clientProfile } from "./data";
+import { useDashboardData } from "./DashboardContext";
 
 export const Benchmarks = () => {
+  const { benchmarks, clientProfile } = useDashboardData();
   const self = clientProfile.composite;
 
   return (

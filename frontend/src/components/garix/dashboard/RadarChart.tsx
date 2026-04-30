@@ -1,4 +1,4 @@
-import { dimensions } from "./data";
+import { useDashboardData } from "./DashboardContext";
 
 const SIZE = 360;
 const CENTER = SIZE / 2;
@@ -20,6 +20,7 @@ interface RadarChartProps {
 }
 
 export const RadarChart = ({ hover, selected, onHover, onSelect }: RadarChartProps) => {
+  const { dimensions } = useDashboardData();
   const count = dimensions.length;
   const active = selected !== null ? selected : hover;
 

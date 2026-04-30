@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { dimensions, type Priority } from "./data";
+import { type Priority } from "./data";
+import { useDashboardData } from "./DashboardContext";
 import { ChevronDown } from "lucide-react";
 
 const priorityStyles: Record<Priority, string> = {
@@ -17,6 +18,7 @@ const scoreBar = (v: number) => {
 export const HeatMap = () => {
   const [open, setOpen] = useState<string | null>("strategy");
   const [filter, setFilter] = useState<Priority | "ALL">("ALL");
+  const { dimensions } = useDashboardData();
 
   return (
     <div>
@@ -97,7 +99,7 @@ export const HeatMap = () => {
                         key={ind.name}
                         className="grid grid-cols-12 items-center gap-3 py-2.5 px-3 bg-paper border border-border hover:border-ink/30 transition-colors text-sm"
                       >
-                        <div className="col-span-12 md:col-span-5 text-ink">
+                        <div className="col-span-12 md:col-span-5 text-ink whitespace-normal break-words leading-tight pr-2">
                           {ind.name}
                         </div>
                         <div className="col-span-4 md:col-span-2 flex items-center gap-2">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { roadmapPlans, type DurationKey, clientProfile } from "./data";
+import { roadmapPlans, type DurationKey } from "./data";
+import { useDashboardData } from "./DashboardContext";
 import { DimensionRoadmap } from "./DimensionRoadmap";
 
 const durations: DurationKey[] = [3, 6, 9, 12];
@@ -17,6 +18,7 @@ const termClass = (term: string) => {
 };
 
 export const Roadmap = () => {
+  const { clientProfile } = useDashboardData();
   const [duration, setDuration] = useState<DurationKey>(12);
   const plan = roadmapPlans[duration];
 
@@ -160,6 +162,16 @@ export const Roadmap = () => {
         </div>
         <p className="text-sm md:text-base text-ink-soft leading-relaxed">{plan.projectedCopy}</p>
       </section>
+      {/* Retake Assessment button after Projected landing */}
+      <div className="flex justify-end mt-8">
+        <button
+          onClick={() => window.location.assign('/onboarding')}
+          className="inline-flex items-center gap-2 border border-ink text-ink px-4 py-2.5 text-sm font-medium hover:bg-ink hover:text-paper transition-colors group"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M1 4v6h6M3.51 9A9 9 0 1 0 12 3v3" /></svg>
+          Retake Assessment
+        </button>
+      </div>
     </div>
   );
 };
