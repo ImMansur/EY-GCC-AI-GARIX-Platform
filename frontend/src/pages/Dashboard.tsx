@@ -25,6 +25,7 @@ import { Benchmarks } from "@/components/garix/dashboard/Benchmarks";
 import { Roadmap } from "@/components/garix/dashboard/Roadmap";
 import { StageJourney } from "@/components/garix/dashboard/StageJourney";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ const Dashboard = () => {
       return;
     }
 
-    fetch(`http://localhost:8000/api/survey/${id}`)
+    fetch(`${API_BASE}/api/survey/${id}`)
       .then(r => r.json())
       .then(data => {
         if (!data.detail && data.scores) {

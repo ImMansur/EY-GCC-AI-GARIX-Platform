@@ -25,6 +25,7 @@ app.add_middleware(
         "http://localhost:8080",
         "http://192.168.1.47:8080",
         "http://localhost:5173",
+        os.getenv("FRONTEND_URL", ""),
     ],
     allow_credentials=True,
     allow_methods=["*"],

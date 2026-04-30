@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Flag, CheckCircle2 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+
 interface Option {
   key: string;
   value: number;
@@ -91,7 +93,7 @@ const Assessment = () => {
       setTimeout(() => setLoading(false), 1800);
       return;
     }
-    fetch("http://localhost:8000/generate-questions", {
+    fetch(`${API_BASE}/generate-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ persona, role }),
@@ -223,7 +225,7 @@ const Assessment = () => {
     };
 
     try {
-      const res = await fetch("http://localhost:8000/api/survey/submit", {
+      const res = await fetch(`${API_BASE}/api/survey/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
