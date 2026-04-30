@@ -19,14 +19,18 @@ from generate_questions import generate_questions
 app = FastAPI(title="GARIX Backend")
 
 # -------------------- CORS --------------------
+cors_origins = [
+    "http://localhost:8080",
+    "http://192.168.1.47:8080",
+    "http://localhost:5173",
+]
+frontend_url = os.getenv("FRONTEND_URL", "")
+if frontend_url:
+    cors_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8080",
-        "http://192.168.1.47:8080",
-        "http://localhost:5173",
-        os.getenv("FRONTEND_URL", ""),
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
