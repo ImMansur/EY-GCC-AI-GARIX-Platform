@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Building2,
@@ -11,25 +11,216 @@ import {
   Bell,
   LogOut,
   TrendingUp,
+  RotateCcw,
 } from "lucide-react";
-import { clientProfile, dimensions } from "@/components/garix/dashboard/data";
-import { StageJourney } from "@/components/garix/dashboard/StageJourney";
+import { clientProfile as mockClientProfile, dimensions as mockDimensions, findings as mockFindings, benchmarks as mockBenchmarks, Dimension, Finding } from "@/components/garix/dashboard/data";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { DashboardContext } from "@/components/garix/dashboard/DashboardContext";
+import { useSearchParams } from "react-router-dom";
 import { RadarChart } from "@/components/garix/dashboard/RadarChart";
 import { HeatMap } from "@/components/garix/dashboard/HeatMap";
 import { Findings } from "@/components/garix/dashboard/Findings";
 import { Benchmarks } from "@/components/garix/dashboard/Benchmarks";
 import { Roadmap } from "@/components/garix/dashboard/Roadmap";
+import { StageJourney } from "@/components/garix/dashboard/StageJourney";
+
 
 const Dashboard = () => {
-  const criticalCount = dimensions.flatMap((d) => d.indicators).filter((i) => i.priority === "CRITICAL").length;
-  const strengthCount = dimensions.flatMap((d) => d.indicators).filter((i) => i.priority === "STRENGTH").length;
-  const gapToPeer = (clientProfile.peerAvg - clientProfile.composite).toFixed(1);
+  const navigate = useNavigate();
   const [radarHover, setRadarHover] = useState<number | null>(null);
   const [radarSelected, setRadarSelected] = useState<number | null>(null);
   const activeIdx = radarSelected !== null ? radarSelected : radarHover;
+  const [searchParams] = useSearchParams();
+  const [res, setRes] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Fetch user profile from Firestore if logged in
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            setUserProfile(userDoc.data());
+          }
+        } catch (e) {
+          // Optionally handle error
+        }
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
+    fetch(`http://localhost:8000/api/survey/${id}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.detail && data.scores) {
+          setRes(data);
+        }
+        setLoading(false);
+      })
+      .catch(e => {
+        console.error("Failed to fetch survey:", e);
+        setLoading(false);
+      });
+  }, [searchParams]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans">
+        <div className="h-8 w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="text-ink-soft text-sm uppercase tracking-wider font-semibold animate-pulse">
+          Retrieving live assessment data...
+        </div>
+      </div>
+    );
+  }
+
+  const activeDimensions: Dimension[] = res ? mockDimensions.map(d => {
+    const normalize = (s: string) =>
+      s.toLowerCase().replace(/&/g, "and").replace(/organization/g, "organisation");
+    const apiDim = res.scores?.dimensions?.find((x: any) => {
+      const xName = normalize(x?.dimension_name || "");
+      const dName = normalize(d?.name || "");
+      return xName === dName || xName.includes(dName) || dName.includes(xName);
+    });
+    if (!apiDim) return d;
+
+    const indicators = apiDim.sub_dimensions?.map((sd: any, idx: number) => {
+      let priority: "STRENGTH" | "MONITOR" | "HIGH" | "CRITICAL" = "MONITOR";
+      if (sd.score >= 4) priority = "STRENGTH";
+      else if (sd.score <= 2) priority = "CRITICAL";
+      else if (sd.score <= 2.5) priority = "HIGH";
+      
+      const origInd = d.indicators[idx];
+      const peer = origInd ? origInd.peer : 2.5;
+      const gap = sd.score - peer;
+      const name = origInd ? origInd.name : sd.sub_dimension_name;
+
+      return {
+        name,
+        client: sd.score,
+        peer, gap, priority
+      };
+    }) || d.indicators;
+
+    let stage = "Aware";
+    if (apiDim.score >= 4.5) stage = "Realized";
+    else if (apiDim.score >= 3.5) stage = "Native";
+    else if (apiDim.score >= 2.5) stage = "Scaled";
+    else if (apiDim.score >= 1.5) stage = "Embedded";
+
+    return { ...d, score: apiDim.score, stage, weight: apiDim.weight, indicators };
+  }) : mockDimensions;
+
+  let activeProfile = userProfile ? { ...mockClientProfile, ...userProfile } : { ...mockClientProfile };
+  if (res) {
+    const comp = res.scores?.composite_score || activeProfile.composite;
+    let stageLabel = "AI Aware";
+    let stageNum = 1;
+    if (comp >= 4.5) { stageLabel = "AI Realized"; stageNum = 5; }
+    else if (comp >= 3.5) { stageLabel = "AI Native"; stageNum = 4; }
+    else if (comp >= 2.5) { stageLabel = "AI Scaled"; stageNum = 3; }
+    else if (comp >= 1.5) { stageLabel = "AI Embedded"; stageNum = 2; }
+    activeProfile = { ...activeProfile, composite: comp, currentStage: stageNum, currentStageLabel: stageLabel, name: res.company || activeProfile.name, peerAvg: res.benchmarks?.composite?.median ?? activeProfile.peerAvg };
+  }
+
+  const dimIdToKey: Record<string, string> = {
+    "1": "strategy", "2": "process", "3": "talent", "4": "tech", "5": "org", "6": "data", "7": "perf", "8": "gov", "9": "risk"
+  };
+
+  const activeFindings: Finding[] = res?.insights && Object.keys(res.insights).length > 0 ? Object.entries(res.insights).map(([id, v]: [string, any]) => {
+    if (v.findings && Array.isArray(v.findings)) {
+      return v.findings.map((f: any) => ({
+        ...f,
+        dimensionKey: dimIdToKey[id]
+      }));
+    } else {
+      // Fallback for old format
+      return [
+        { label: "STRENGTH", title: "Key Strengths", subtitle: "", points: v.key_strengths || [], dimensionKey: dimIdToKey[id] },
+        { label: "STAGE-PROGRESSION BLOCKER", title: "Blockers", subtitle: "", points: v.blockers || [], dimensionKey: dimIdToKey[id] },
+        { label: "RISK", title: "Risk Areas", subtitle: "", points: v.risk_areas || [], dimensionKey: dimIdToKey[id] }
+      ];
+    }
+  }).flat() as Finding[] : mockFindings;
+
+  let activeBenchmarks = mockBenchmarks.map((b) => 
+    b.tone === "self" ? { ...b, score: activeProfile.composite } : b
+  );
+
+  if (res?.benchmarks) {
+    // Hardcoded values for all quartiles and sector avg by role
+    const indiaGccMedianTable = {
+      "GCC Head": 3.1, "MD": 3.1, "COO": 3.1, "Strategy Officer": 3.2,
+      "CIO": 3.0, "CTO/VP Engineering": 3.0, "Head of IT": 3.0,
+      "Head of Data": 3.0, "Chief Data Officer": 3.0, "Analytics Leads": 3.0,
+      "Data Scientist": 3.2, "ML Engineers": 3.2, "AI CoE": 3.2,
+      "CHRO/VP HR": 2.8, "Head of L&D": 2.8, "Talent Acquisition": 2.7,
+      "Head of Finance Ops": 3.0, "Operations Lead": 2.9, "Head of Procurement & Supply Chain": 3.0,
+      "General Counsel": 2.4, "Head of Risk": 2.6, "Compliance Officer": 2.4
+    };
+    const indiaGccLeadingQuartileTable = {
+      "GCC Head": 3.3, "MD": 3.3, "COO": 3.3, "Strategy Officer": 3.4,
+      "CIO": 3.3, "CTO/VP Engineering": 3.3, "Head of IT": 3.3,
+      "Head of Data": 3.3, "Chief Data Officer": 3.3, "Analytics Leads": 3.3,
+      "Data Scientist": 3.4, "ML Engineers": 3.4, "AI CoE": 3.4,
+      "CHRO/VP HR": 3.1, "Head of L&D": 3.1, "Talent Acquisition": 3.1,
+      "Head of Finance Ops": 3.3, "Operations Lead": 3.2, "Head of Procurement & Supply Chain": 3.3,
+      "General Counsel": 3.0, "Head of Risk": 3.0, "Compliance Officer": 3.0
+    };
+    const indiaGccLaggingQuartileTable = {
+      "GCC Head": 2.2, "MD": 2.2, "COO": 2.2, "Strategy Officer": 2.2,
+      "CIO": 2.1, "CTO/VP Engineering": 2.1, "Head of IT": 2.1,
+      "Head of Data": 2.1, "Chief Data Officer": 2.1, "Analytics Leads": 2.1,
+      "Data Scientist": 2.2, "ML Engineers": 2.2, "AI CoE": 2.2,
+      "CHRO/VP HR": 2.0, "Head of L&D": 2.0, "Talent Acquisition": 2.0,
+      "Head of Finance Ops": 2.1, "Operations Lead": 2.1, "Head of Procurement & Supply Chain": 2.1,
+      "General Counsel": 1.9, "Head of Risk": 2.0, "Compliance Officer": 1.9
+    };
+    const role = res?.role || "";
+    const medianScore = indiaGccMedianTable[role] ?? 3.0;
+    const leadingScore = indiaGccLeadingQuartileTable[role] ?? 3.3;
+    const laggingScore = indiaGccLaggingQuartileTable[role] ?? 2.0;
+    activeBenchmarks = [
+      { label: "Your GARIX Score", score: activeProfile.composite, tone: "self", dotClass: "bg-muted-foreground/60" },
+      { label: "India GCC — Leading quartile", score: leadingScore, tone: activeProfile.composite < leadingScore ? "behind" : "ahead", dotClass: "bg-muted-foreground/60" },
+      { label: "India GCC — Median", score: medianScore, tone: activeProfile.composite < medianScore ? "behind" : "ahead", dotClass: "bg-yellow" },
+      { label: "India GCC — Lagging quartile", score: laggingScore, tone: activeProfile.composite < laggingScore ? "behind" : "ahead", dotClass: "bg-muted-foreground/60" },
+      { label: `GCC Sector Avg — ${res.sector || "Your Sector"}`, score: medianScore, tone: activeProfile.composite < medianScore ? "behind" : "ahead", dotClass: "bg-[hsl(210_90%_55%)]" },
+    ];
+    activeProfile.peerAvg = medianScore;
+  }
+
+  const contextValue = {
+    clientProfile: activeProfile,
+    dimensions: activeDimensions,
+    benchmarks: activeBenchmarks,
+    findings: activeFindings
+  };
+
+  const criticalCount = activeDimensions.flatMap((d) => d.indicators).filter((i) => i.priority === "CRITICAL").length;
+  const strengthCount = activeDimensions.flatMap((d) => d.indicators).filter((i) => i.priority === "STRENGTH").length;
+  const gapRaw = +(activeProfile.composite - activeProfile.peerAvg).toFixed(1);
+  const gapToPeer = gapRaw > 0 ? `+${gapRaw}` : gapRaw.toString();
+
+  const userName = res?.user_name || "Mansur Javid";
+  const userInitials = userName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+  const userRole = res?.role || "Partner · GCC Advisory";
 
   return (
-    <div className="min-h-screen bg-paper text-ink font-sans">
+    <DashboardContext.Provider value={contextValue}>
+      <div className="min-h-screen bg-paper text-ink font-sans">
       {/* Top bar */}
       <header className="fixed top-0 inset-x-0 z-40 bg-paper/85 backdrop-blur-md border-b border-border">
         <div className="container-narrow flex items-center justify-between h-16">
@@ -69,11 +260,11 @@ const Dashboard = () => {
             <div className="w-px h-6 bg-border mx-2" />
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 bg-gradient-yellow flex items-center justify-center text-ink font-semibold text-xs">
-                MJ
+                {userInitials}
               </div>
               <div className="hidden sm:flex flex-col leading-tight">
-                <span className="text-xs font-medium text-ink">Mansur Javid</span>
-                <span className="text-[10px] text-muted-foreground">Partner · GCC Advisory</span>
+                <span className="text-xs font-medium text-ink">{userName}</span>
+                <span className="text-[10px] text-muted-foreground">{userRole}</span>
               </div>
             </div>
             <Link
@@ -98,7 +289,7 @@ const Dashboard = () => {
               GARIX v2.0
             </span>
             <span className="text-xs text-muted-foreground ml-auto">
-              Last refreshed · 17 Apr 2026
+              {res?.submitted_at ? `Last refreshed · ${new Date(res.submitted_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}` : "Last refreshed · N/A"}
             </span>
           </div>
 
@@ -111,25 +302,28 @@ const Dashboard = () => {
                     Client engagement
                   </div>
                   <h1 className="display-serif text-4xl md:text-5xl font-light text-ink leading-tight">
-                    {clientProfile.name}
+                    {activeProfile.name}
                   </h1>
-                  <p className="mt-2 text-ink-soft">
-                    Sample diagnostic findings · Benchmarked against the GARIX cohort
-                  </p>
+                  <div className="text-ink-soft flex items-center gap-1 whitespace-nowrap overflow-auto">
+                    <span>Sample diagnostic findings</span>
+                    <span className="mx-1">·</span>
+                    <span>Benchmarked against the GARIX cohort</span>
+                  </div>
                 </div>
-                <button className="hidden sm:inline-flex items-center gap-2 bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-ink-soft transition-colors group">
-                  <Download className="h-4 w-4" />
-                  Export PDF
-                  <span className="text-yellow group-hover:translate-x-0.5 transition-transform">→</span>
-                </button>
+                <div className="hidden sm:flex items-center gap-2">
+                  <button className="inline-flex items-center gap-2 bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-ink-soft transition-colors group">
+                    <Download className="h-4 w-4" />
+                    Export PDF
+                    <span className="text-yellow group-hover:translate-x-0.5 transition-transform">→</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5 pt-6 border-t border-border">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5 pt-6 border-t border-border">
                 {[
-                  { Icon: MapPin, label: "Location", value: clientProfile.location },
-                  { Icon: Users, label: "Headcount", value: clientProfile.fteCount },
-                  { Icon: Calendar, label: "Tenure", value: clientProfile.tenure },
-                  { Icon: Briefcase, label: "Functions", value: clientProfile.functions },
+                  { Icon: MapPin, label: "Location", value: res?.location || activeProfile.location },
+                  { Icon: Users, label: "Headcount", value: res?.size || activeProfile.fteCount },
+                  { Icon: Briefcase, label: "Functions", value: res?.industry || res?.sector || activeProfile.functions },
                 ].map((m) => (
                   <div key={m.label}>
                     <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1.5">
@@ -153,13 +347,13 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="display-serif text-7xl font-light text-paper leading-none tabular-nums">
-                    {clientProfile.composite}
+                    {activeProfile.composite.toFixed(1)}
                   </span>
                   <span className="text-paper/50 text-xl">/ 5.0</span>
                 </div>
                 <div className="mt-5 flex items-center gap-3 text-xs text-paper/70">
                   <Building2 className="h-3.5 w-3.5 text-yellow" />
-                  Stage 2 — AI Embedded (early)
+                  Stage {activeProfile.currentStage} — {activeProfile.currentStageLabel}
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-paper/15 grid grid-cols-2 gap-4 text-sm">
@@ -167,14 +361,32 @@ const Dashboard = () => {
                     <div className="text-[10px] uppercase tracking-[0.18em] text-paper/50 mb-1">
                       Peer benchmark
                     </div>
-                    <div className="font-semibold text-paper">{clientProfile.peerAvg} / 5.0</div>
+                    <div className="font-semibold text-paper">{activeProfile.peerAvg.toFixed(1)} / 5.0</div>
                   </div>
                   <div>
                     <div className="text-[10px] uppercase tracking-[0.18em] text-paper/50 mb-1">
                       Gap to peer
                     </div>
-                    <div className="font-semibold text-destructive flex items-center gap-1">
-                      <TrendingUp className="h-3.5 w-3.5 rotate-180" />
+                    <div
+                      className={
+                        "font-semibold flex items-center gap-1 " +
+                        (gapRaw > 0
+                          ? "text-emerald-600"
+                          : gapRaw < 0
+                          ? "text-destructive"
+                          : "text-ink")
+                      }
+                    >
+                      <TrendingUp
+                        className={
+                          "h-3.5 w-3.5 transition-transform" +
+                          (gapRaw > 0
+                            ? ""
+                            : gapRaw < 0
+                            ? " rotate-180"
+                            : "")
+                        }
+                      />
                       {gapToPeer}
                     </div>
                   </div>
@@ -189,8 +401,8 @@ const Dashboard = () => {
           {[
             { label: "Critical gaps", value: criticalCount, sub: "Across 9 dimensions", accent: "text-destructive" },
             { label: "Strengths identified", value: strengthCount, sub: "Above peer benchmark", accent: "text-yellow-deep" },
-            { label: "Sub-indicators", value: 45, sub: "5 per dimension", accent: "text-ink" },
-            { label: "Months to AI Native", value: 18, sub: "Target Stage 4", accent: "text-stage-4" },
+            { label: "Sub-indicators", value: activeDimensions.flatMap(d => d.indicators).length, sub: "3 per dimension", accent: "text-ink" },
+            { label: "Months to AI Native", value: activeProfile.currentStage >= 4 ? 0 : activeProfile.targets.find(t => t.stage === 4)?.in?.replace("M", "") || 18, sub: "Target Stage 4", accent: "text-stage-4" },
           ].map((k) => (
             <div
               key={k.label}
@@ -256,7 +468,7 @@ const Dashboard = () => {
                 Hover or click the chart to explore
               </h3>
               <ul className="space-y-1.5 flex-1">
-                {dimensions.map((d, i) => {
+                {activeDimensions.map((d, i) => {
                   const isActive = activeIdx === i;
                   return (
                     <li
@@ -314,7 +526,7 @@ const Dashboard = () => {
                 Sub-dimension heat map
               </div>
               <h2 className="display-serif text-3xl font-light text-ink">
-                45 indicators across 9 GARIX pillars
+                27 indicators across 9 GARIX pillars
               </h2>
             </div>
             <p className="text-sm text-ink-soft max-w-md">
@@ -348,8 +560,8 @@ const Dashboard = () => {
               <div className="relative h-10 mb-1">
                 {/* YOU label */}
                 <div
-                  className="absolute -translate-x-1/2 flex flex-col items-center"
-                  style={{ left: `${(clientProfile.composite / 5) * 100}%` }}
+                  className="absolute -translate-x-1/2 flex flex-col items-center transition-all duration-1000"
+                  style={{ left: `${Math.max(0, Math.min(100, ((activeProfile.composite - 1) / 4) * 100))}%` }}
                 >
                   <span className="text-[9px] uppercase tracking-wider font-bold text-yellow mb-1">You</span>
                   <div className="h-5 w-5 rounded-full bg-yellow text-ink flex items-center justify-center text-[9px] font-bold">
@@ -358,8 +570,8 @@ const Dashboard = () => {
                 </div>
                 {/* MED label */}
                 <div
-                  className="absolute -translate-x-1/2 flex flex-col items-center"
-                  style={{ left: `${(clientProfile.peerAvg / 5) * 100}%` }}
+                  className="absolute -translate-x-1/2 flex flex-col items-center transition-all duration-1000"
+                  style={{ left: `${Math.max(0, Math.min(100, ((activeProfile.peerAvg - 1) / 4) * 100))}%` }}
                 >
                   <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground mb-1">Med</span>
                   <div className="h-5 w-5 rounded-full bg-muted-foreground/60 text-paper flex items-center justify-center text-[9px] font-bold">
@@ -371,29 +583,35 @@ const Dashboard = () => {
               {/* Stage gradient bar — filled to user score */}
               <div className="relative h-2.5 w-full bg-border rounded-full overflow-visible">
                 <div
-                  className="h-full bg-gradient-stage rounded-full"
-                  style={{ width: `${(clientProfile.composite / 5) * 100}%` }}
+                  className="h-full bg-gradient-stage rounded-full transition-all duration-1000"
+                  style={{ width: `${Math.max(0, Math.min(100, ((activeProfile.composite - 1) / 4) * 100))}%` }}
                 />
               </div>
 
               {/* Stage labels below */}
-              <div className="grid grid-cols-5 mt-3">
+              <div className="relative h-8 mt-3">
                 {[
-                  { name: "AI Aware", range: "1–2" },
-                  { name: "AI Embedded", range: "2–3" },
-                  { name: "AI Scaled", range: "3–4" },
-                  { name: "AI Native", range: "4–4.5" },
-                  { name: "AI Realized", range: "4.5–5" },
-                ].map((s, i) => (
-                  <div
-                    key={s.name}
-                    className="flex flex-col"
-                    style={{ textAlign: i === 0 ? "left" : i === 4 ? "right" : "center" }}
-                  >
-                    <span className="text-[10px] font-medium text-ink-soft">{s.name}</span>
-                    <span className="text-[9px] text-muted-foreground">{s.range}</span>
-                  </div>
-                ))}
+                  { name: "AI Aware", range: "1–2", score: 1 },
+                  { name: "AI Embedded", range: "2–3", score: 2 },
+                  { name: "AI Scaled", range: "3–4", score: 3 },
+                  { name: "AI Native", range: "4–4.5", score: 4 },
+                  { name: "AI Realized", range: "4.5–5", score: 4.5 },
+                ].map((s, i) => {
+                  let align = "left";
+                  let left = `${((s.score - 1) / 4) * 100}%`;
+                  let trans = "0";
+                  
+                  return (
+                    <div
+                      key={s.name}
+                      className="absolute flex flex-col"
+                      style={{ left, transform: `translateX(${trans})`, textAlign: align as any }}
+                    >
+                      <span className="text-[10px] font-medium text-ink-soft whitespace-nowrap">{s.name}</span>
+                      <span className="text-[9px] text-muted-foreground">{s.range}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -428,7 +646,8 @@ const Dashboard = () => {
           <span>For restricted distribution only · AI-Native GCC Advisory Practice</span>
         </footer>
       </main>
-    </div>
+      </div>
+    </DashboardContext.Provider>
   );
 };
 
