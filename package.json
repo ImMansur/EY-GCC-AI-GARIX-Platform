@@ -1,0 +1,12 @@
+{
+  "name": "ey-gcc-ai-garix-platform-root",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix frontend install && pip install -r backend/requirements.txt",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && uvicorn app.main:app --reload"
+  },
+  "dependencies": {
+    "firebase": "^12.12.1"
+  }
+}
