@@ -28,9 +28,10 @@ frontend_url = os.getenv("FRONTEND_URL", "")
 if frontend_url:
     cors_origins.append(frontend_url)
 
+# Allow all origins for Vercel deployment (since requests come from same domain)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=["*"],  # Allow all origins on Vercel
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
