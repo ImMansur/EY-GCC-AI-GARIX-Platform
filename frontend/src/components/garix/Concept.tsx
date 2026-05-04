@@ -220,9 +220,9 @@ export const Concept = () => {
             small
           />
 
-          <div className="mt-14 border border-border bg-paper-elevated">
+          <div className="mt-14 border border-border bg-paper-elevated overflow-x-auto md:overflow-visible">
             {/* Header row */}
-            <div className="hidden md:grid grid-cols-12 bg-ink text-paper text-[10px] uppercase tracking-[0.18em] font-semibold">
+            <div className="hidden md:grid grid-cols-12 bg-ink text-paper text-[10px] uppercase tracking-[0.18em] font-semibold min-w-[600px] md:min-w-0">
               <div className="col-span-3 px-6 py-4">Dimension</div>
               <div className="col-span-4 px-6 py-4 border-l border-paper/10">Traditional GCC</div>
               <div className="col-span-5 px-6 py-4 border-l border-paper/10 bg-yellow text-ink flex items-center gap-2">

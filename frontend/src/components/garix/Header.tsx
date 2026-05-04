@@ -172,6 +172,26 @@ export const Header = () => {
                 {s.label}
               </a>
             ))}
+            <div className="mt-3 pt-3 border-t flex flex-col gap-2">
+              <Link
+                to="/signup"
+                onClick={() => setOpen(false)}
+                className="inline-flex items-center justify-center gap-2 bg-yellow text-ink px-5 py-3 text-sm font-semibold"
+              >
+                Get Started
+              </Link>
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium",
+                  isDark ? "bg-paper/10 text-paper" : "bg-ink/10 text-ink"
+                )}
+              >
+                Login
+                <span>→</span>
+              </Link>
+            </div>
           </div>
         </div>
       )}

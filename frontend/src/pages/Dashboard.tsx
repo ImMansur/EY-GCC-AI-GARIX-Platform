@@ -224,15 +224,15 @@ const Dashboard = () => {
       <div className="min-h-screen bg-paper text-ink font-sans">
       {/* Top bar */}
       <header className="fixed top-0 inset-x-0 z-40 bg-paper/85 backdrop-blur-md border-b border-border">
-        <div className="container-narrow flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative h-8 w-8 bg-ink flex items-center justify-center transition-transform group-hover:scale-105">
-              <span className="display-serif text-yellow text-base font-semibold leading-none">EY</span>
+        <div className="container-narrow flex items-center justify-between h-14 md:h-16 px-4">
+          <Link to="/" className="flex items-center gap-2 md:gap-3 group">
+            <div className="relative h-7 w-7 md:h-8 md:w-8 bg-ink flex items-center justify-center transition-transform group-hover:scale-105">
+              <span className="display-serif text-yellow text-sm md:text-base font-semibold leading-none">EY</span>
               <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-yellow" />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">EY GCC</span>
-              <span className="text-sm font-semibold text-ink">
+              <span className="text-[8px] md:text-[9px] uppercase tracking-[0.2em] text-muted-foreground">EY GCC</span>
+              <span className="text-xs md:text-sm font-semibold text-ink">
                 GAR<span className="text-yellow-deep">IX</span> Dashboard
               </span>
             </div>
@@ -254,13 +254,13 @@ const Dashboard = () => {
           </nav>
 
           <div className="flex items-center gap-1">
-            <button className="p-2 text-muted-foreground hover:text-ink transition-colors relative" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
-              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 bg-yellow rounded-full" />
+            <button className="p-1.5 md:p-2 text-muted-foreground hover:text-ink transition-colors relative" aria-label="Notifications">
+              <Bell className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="absolute top-1 right-1 md:top-1.5 md:right-1.5 h-1.5 w-1.5 bg-yellow rounded-full" />
             </button>
-            <div className="w-px h-6 bg-border mx-2" />
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 bg-gradient-yellow flex items-center justify-center text-ink font-semibold text-xs">
+            <div className="w-px h-5 md:h-6 bg-border mx-1 md:mx-2" />
+            <div className="flex items-center gap-1.5 md:gap-2.5">
+              <div className="h-7 w-7 md:h-8 md:w-8 bg-gradient-yellow flex items-center justify-center text-ink font-semibold text-xs">
                 {userInitials}
               </div>
               <div className="hidden sm:flex flex-col leading-tight">
@@ -270,16 +270,16 @@ const Dashboard = () => {
             </div>
             <Link
               to="/login"
-              className="ml-2 p-2 text-muted-foreground hover:text-ink transition-colors"
+              className="ml-1 md:ml-2 p-1.5 md:p-2 text-muted-foreground hover:text-ink transition-colors"
               aria-label="Sign out"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="container-narrow pb-10 pt-24 space-y-12">
+      <main className="container-narrow pb-10 pt-20 md:pt-24 space-y-8 md:space-y-12 px-4">
         {/* Hero / profile */}
         <section id="overview" className="animate-fade-up">
           <div className="flex flex-wrap items-center gap-2 mb-5">
@@ -296,13 +296,13 @@ const Dashboard = () => {
 
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Profile card */}
-            <div className="lg:col-span-2 bg-paper-elevated border border-border p-8">
-              <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="lg:col-span-2 bg-paper-elevated border border-border p-4 md:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
                 <div>
                   <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
                     Client engagement
                   </div>
-                  <h1 className="display-serif text-4xl md:text-5xl font-light text-ink leading-tight">
+                  <h1 className="display-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-ink leading-tight">
                     {activeProfile.name}
                   </h1>
                   <div className="text-ink-soft flex items-center gap-1 whitespace-nowrap overflow-auto">
@@ -311,7 +311,7 @@ const Dashboard = () => {
                     <span>Benchmarked against the GARIX cohort</span>
                   </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-2">
+                <div className="hidden md:flex items-center gap-2">
                   <button className="inline-flex items-center gap-2 bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-ink-soft transition-colors group">
                     <Download className="h-4 w-4" />
                     Export PDF
@@ -338,7 +338,7 @@ const Dashboard = () => {
             </div>
 
             {/* Composite score */}
-            <div className="relative bg-ink text-paper p-8 overflow-hidden">
+            <div className="relative bg-ink text-paper p-6 md:p-8 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-hero opacity-90" />
               <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-yellow/20 blur-3xl" />
               <div className="relative">
@@ -347,10 +347,10 @@ const Dashboard = () => {
                   GARIX Composite
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="display-serif text-7xl font-light text-paper leading-none tabular-nums">
+                  <span className="display-serif text-5xl sm:text-6xl md:text-7xl font-light text-paper leading-none tabular-nums">
                     {activeProfile.composite.toFixed(1)}
                   </span>
-                  <span className="text-paper/50 text-xl">/ 5.0</span>
+                  <span className="text-paper/50 text-lg md:text-xl">/ 5.0</span>
                 </div>
                 <div className="mt-5 flex items-center gap-3 text-xs text-paper/70">
                   <Building2 className="h-3.5 w-3.5 text-yellow" />
@@ -398,7 +398,7 @@ const Dashboard = () => {
         </section>
 
         {/* KPIs */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-up">
+        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 animate-fade-up">
           {[
             { label: "Critical gaps", value: criticalCount, sub: "Across 9 dimensions", accent: "text-destructive" },
             { label: "Strengths identified", value: strengthCount, sub: "Above peer benchmark", accent: "text-yellow-deep" },
@@ -407,10 +407,10 @@ const Dashboard = () => {
           ].map((k) => (
             <div
               key={k.label}
-              className="bg-paper-elevated border border-border p-5 hover:border-ink/40 hover:shadow-card transition-all"
+              className="bg-paper-elevated border border-border p-4 md:p-5 hover:border-ink/40 hover:shadow-card transition-all"
             >
-              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{k.label}</div>
-              <div className={`display-serif text-4xl font-light mt-2 ${k.accent} tabular-nums`}>
+              <div className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{k.label}</div>
+              <div className={`display-serif text-3xl md:text-4xl font-light mt-2 ${k.accent} tabular-nums`}>
                 {k.value}
               </div>
               <div className="text-xs text-ink-soft mt-1">{k.sub}</div>
@@ -419,14 +419,14 @@ const Dashboard = () => {
         </section>
 
         {/* Stage journey */}
-        <section className="bg-paper-elevated border border-border p-8 animate-fade-up">
+        <section className="bg-paper-elevated border border-border p-4 md:p-6 lg:p-8 animate-fade-up">
           <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
             <div>
               <div className="eyebrow mb-2">
                 <span className="h-px w-6 bg-yellow" />
                 Stage trajectory
               </div>
-              <h2 className="display-serif text-3xl font-light text-ink">
+              <h2 className="display-serif text-2xl md:text-3xl font-light text-ink">
                 Current position vs. target stages
               </h2>
             </div>
@@ -438,15 +438,15 @@ const Dashboard = () => {
         </section>
 
         {/* Radar + summary */}
-        <section id="dimensions" className="grid lg:grid-cols-5 gap-6 animate-fade-up">
-          <div className="lg:col-span-3 bg-paper-elevated border border-border p-8">
+        <section id="dimensions" className="grid lg:grid-cols-5 gap-4 md:gap-6 animate-fade-up">
+          <div className="lg:col-span-3 bg-paper-elevated border border-border p-4 md:p-6 lg:p-8">
             <div className="flex items-end justify-between mb-6">
               <div>
                 <div className="eyebrow mb-2">
                   <span className="h-px w-6 bg-yellow" />
                   9-dimension profile
                 </div>
-                <h2 className="display-serif text-3xl font-light text-ink">
+                <h2 className="display-serif text-2xl md:text-3xl font-light text-ink">
                   Dimension scores
                 </h2>
               </div>
@@ -458,15 +458,15 @@ const Dashboard = () => {
               onSelect={setRadarSelected}
             />
           </div>
-          <div className="lg:col-span-2 bg-ink text-paper p-6 relative overflow-hidden">
+          <div className="lg:col-span-2 bg-ink text-paper p-4 md:p-6 relative overflow-hidden">
             <div className="absolute inset-0 bg-grid opacity-[0.04]" />
             <div className="relative h-full flex flex-col">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-yellow font-semibold mb-3">
                 <span className="h-px w-6 bg-yellow" />
                 All Dimensions
               </div>
-              <h3 className="display-serif text-xl font-light mb-4">
-                Hover or click the chart to explore
+              <h3 className="display-serif text-lg md:text-xl font-light mb-4">
+                Tap or click the chart to explore
               </h3>
               <ul className="space-y-1.5 flex-1">
                 {activeDimensions.map((d, i) => {
@@ -475,7 +475,7 @@ const Dashboard = () => {
                     <li
                       key={d.key}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-200",
+                        "flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 cursor-pointer transition-all duration-200",
                         isActive
                           ? "bg-yellow/15 border-l-2 border-yellow"
                           : "border-l-2 border-transparent hover:bg-paper/5"
@@ -486,13 +486,13 @@ const Dashboard = () => {
                     >
                       <span
                         className={cn(
-                          "text-sm flex-1 transition-colors",
+                          "text-xs md:text-sm flex-1 transition-colors",
                           isActive ? "text-paper font-semibold" : "text-paper/70"
                         )}
                       >
                         {d.name}
                       </span>
-                      <div className="w-20 h-1 bg-paper/15 overflow-hidden flex-shrink-0">
+                      <div className="w-16 md:w-20 h-1 bg-paper/15 overflow-hidden flex-shrink-0">
                         <div
                           className="h-full bg-yellow transition-all duration-300"
                           style={{ width: `${(d.score / 5) * 100}%` }}
@@ -500,7 +500,7 @@ const Dashboard = () => {
                       </div>
                       <span
                         className={cn(
-                          "tabular-nums text-sm font-semibold w-7 text-right flex-shrink-0 transition-colors",
+                          "tabular-nums text-xs md:text-sm font-semibold w-6 md:w-7 text-right flex-shrink-0 transition-colors",
                           isActive ? "text-yellow" : "text-paper/60"
                         )}
                       >
@@ -526,7 +526,7 @@ const Dashboard = () => {
                 <span className="h-px w-6 bg-yellow" />
                 Sub-dimension heat map
               </div>
-              <h2 className="display-serif text-3xl font-light text-ink">
+              <h2 className="display-serif text-xl md:text-2xl lg:text-3xl font-light text-ink">
                 27 indicators across 9 GARIX pillars
               </h2>
             </div>
@@ -545,13 +545,13 @@ const Dashboard = () => {
               <span className="h-px w-6 bg-yellow" />
               Peer & sector benchmarks
             </div>
-            <h2 className="display-serif text-3xl font-light text-ink">
+            <h2 className="display-serif text-xl md:text-2xl lg:text-3xl font-light text-ink">
               How you compare across the GARIX cohort
             </h2>
           </div>
 
           {/* Comparison bar */}
-          <div className="bg-paper-elevated border border-border p-6 md:p-8 mb-6">
+          <div className="bg-paper-elevated border border-border p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
             <p className="text-sm text-muted-foreground mb-5">
               Your GARIX score benchmarked against EY's India GCC cohort — filtered by industry and GCC size.
             </p>
@@ -630,7 +630,7 @@ const Dashboard = () => {
               <span className="h-px w-6 bg-yellow" />
               Dimension-level findings
             </div>
-            <h2 className="display-serif text-3xl font-light text-ink">
+            <h2 className="display-serif text-xl md:text-2xl lg:text-3xl font-light text-ink">
               Key strengths, blockers &amp; risk areas
             </h2>
           </div>
