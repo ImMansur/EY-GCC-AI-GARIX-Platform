@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { roadmapPlans, type DurationKey } from "./data";
 import { useDashboardData } from "./DashboardContext";
 import { DimensionRoadmap } from "./DimensionRoadmap";
+import { useNavigate } from "react-router-dom";
 
 const durations: DurationKey[] = [3, 6, 9, 12];
 
@@ -21,6 +22,11 @@ export const Roadmap = () => {
   const { clientProfile } = useDashboardData();
   const [duration, setDuration] = useState<DurationKey>(12);
   const plan = roadmapPlans[duration];
+  const navigate = useNavigate();
+
+  const handleRetakeAssessment = () => {
+    navigate("/onboarding");
+  };
 
   return (
     <div className="space-y-8">
@@ -165,7 +171,7 @@ export const Roadmap = () => {
       {/* Retake Assessment button after Projected landing */}
       <div className="flex justify-end mt-8">
         <button
-          onClick={() => window.location.assign('/onboarding')}
+          onClick={handleRetakeAssessment}
           className="inline-flex items-center gap-2 border border-ink text-ink px-4 py-2.5 text-sm font-medium hover:bg-ink hover:text-paper transition-colors group"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M1 4v6h6M3.51 9A9 9 0 1 0 12 3v3" /></svg>
