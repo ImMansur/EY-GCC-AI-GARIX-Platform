@@ -33,8 +33,8 @@ export const RadarChart = ({ hover, selected, onHover, onSelect }: RadarChartPro
       .join(" ") + "Z";
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="relative w-full max-w-[420px]">
+    <div className="flex flex-col items-center w-full px-2 md:px-0">
+      <div className="relative w-full max-w-[320px] sm:max-w-[380px] md:max-w-[420px]">
         <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full drop-shadow-sm">
           {/* Sector highlights */}
           {dimensions.map((_, i) => {

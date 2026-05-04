@@ -78,9 +78,9 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans">
-        <div className="h-8 w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-4" />
-        <div className="text-ink-soft text-sm uppercase tracking-wider font-semibold animate-pulse">
+      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans px-4">
+        <div className="h-6 w-6 sm:h-8 sm:w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-3 sm:mb-4" />
+        <div className="text-ink-soft text-xs sm:text-sm uppercase tracking-wider font-semibold animate-pulse text-center">
           Retrieving live assessment data...
         </div>
       </div>
@@ -279,33 +279,33 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container-narrow pb-10 pt-20 md:pt-24 space-y-8 md:space-y-12 px-4">
+      <main className="container-narrow pb-6 pt-16 md:pt-24 space-y-4 md:space-y-8 lg:space-y-12 px-3 md:px-4">
         {/* Hero / profile */}
         <section id="overview" className="animate-fade-up">
-          <div className="flex flex-wrap items-center gap-2 mb-5">
-            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground border border-border px-2 py-1">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-3 sm:mb-5">
+            <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-muted-foreground border border-border px-1.5 sm:px-2 py-0.5 sm:py-1">
               Illustrative Assessment Output
             </span>
-            <span className="text-[10px] uppercase tracking-[0.22em] text-yellow-deep bg-yellow-soft border border-yellow/40 px-2 py-1 font-semibold">
+            <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-yellow-deep bg-yellow-soft border border-yellow/40 px-1.5 sm:px-2 py-0.5 sm:py-1 font-semibold">
               GARIX v2.0
             </span>
-            <span className="text-xs text-muted-foreground ml-auto">
+            <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">
               {res?.submitted_at ? `Last refreshed · ${new Date(res.submitted_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}` : "Last refreshed · N/A"}
             </span>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid lg:grid-cols-3 gap-3 md:gap-6">
             {/* Profile card */}
-            <div className="lg:col-span-2 bg-paper-elevated border border-border p-4 md:p-6 lg:p-8">
-              <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
+            <div className="lg:col-span-2 bg-paper-elevated border border-border p-3 md:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-4 mb-4 md:mb-6">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                  <div className="text-[9px] sm:text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-1 sm:mb-2">
                     Client engagement
                   </div>
-                  <h1 className="display-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-ink leading-tight">
+                  <h1 className="display-serif text-xl sm:text-2xl md:text-4xl lg:text-5xl font-light text-ink leading-tight">
                     {activeProfile.name}
                   </h1>
-                  <div className="text-ink-soft flex items-center gap-1 whitespace-nowrap overflow-auto">
+                  <div className="text-[11px] sm:text-sm text-ink-soft flex items-center gap-1 whitespace-nowrap overflow-auto">
                     <span>Sample diagnostic findings</span>
                     <span className="mx-1">·</span>
                     <span>Benchmarked against the GARIX cohort</span>
@@ -320,52 +320,52 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5 pt-6 border-t border-border">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 md:gap-x-6 md:gap-y-5 pt-3 md:pt-6 border-t border-border">
                 {[
                   { Icon: MapPin, label: "Location", value: res?.location || activeProfile.location },
                   { Icon: Users, label: "Headcount", value: res?.size || activeProfile.fteCount },
                   { Icon: Briefcase, label: "Functions", value: res?.industry || res?.sector || activeProfile.functions },
                 ].map((m) => (
                   <div key={m.label}>
-                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1.5">
-                      <m.Icon className="h-3 w-3" />
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1">
+                      <m.Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                       {m.label}
                     </div>
-                    <div className="text-sm text-ink font-medium leading-snug">{m.value}</div>
+                    <div className="text-xs sm:text-sm text-ink font-medium leading-snug">{m.value}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Composite score */}
-            <div className="relative bg-ink text-paper p-6 md:p-8 overflow-hidden">
+            <div className="relative bg-ink text-paper p-4 md:p-6 lg:p-8 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-hero opacity-90" />
               <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-yellow/20 blur-3xl" />
               <div className="relative">
-                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-yellow font-semibold mb-3">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-yellow font-semibold mb-2 sm:mb-3">
                   <span className="h-px w-6 bg-yellow" />
                   GARIX Composite
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="display-serif text-5xl sm:text-6xl md:text-7xl font-light text-paper leading-none tabular-nums">
+                <div className="flex items-baseline gap-1.5 sm:gap-2">
+                  <span className="display-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-paper leading-none tabular-nums">
                     {activeProfile.composite.toFixed(1)}
                   </span>
-                  <span className="text-paper/50 text-lg md:text-xl">/ 5.0</span>
+                  <span className="text-paper/50 text-base sm:text-lg md:text-xl">/ 5.0</span>
                 </div>
-                <div className="mt-5 flex items-center gap-3 text-xs text-paper/70">
-                  <Building2 className="h-3.5 w-3.5 text-yellow" />
+                <div className="mt-3 sm:mt-5 flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-paper/70">
+                  <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-yellow" />
                   Stage {activeProfile.currentStage} — {activeProfile.currentStageLabel}
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-paper/15 grid grid-cols-2 gap-4 text-sm">
+                <div className="mt-4 pt-4 sm:mt-6 sm:pt-6 border-t border-paper/15 grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-paper/50 mb-1">
+                    <div className="text-[8px] sm:text-[10px] uppercase tracking-[0.18em] text-paper/50 mb-0.5 sm:mb-1">
                       Peer benchmark
                     </div>
                     <div className="font-semibold text-paper">{activeProfile.peerAvg.toFixed(1)} / 5.0</div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-paper/50 mb-1">
+                    <div className="text-[8px] sm:text-[10px] uppercase tracking-[0.18em] text-paper/50 mb-0.5 sm:mb-1">
                       Gap to peer
                     </div>
                     <div
@@ -398,7 +398,7 @@ const Dashboard = () => {
         </section>
 
         {/* KPIs */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 animate-fade-up">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 lg:gap-4 animate-fade-up">
           {[
             { label: "Critical gaps", value: criticalCount, sub: "Across 9 dimensions", accent: "text-destructive" },
             { label: "Strengths identified", value: strengthCount, sub: "Above peer benchmark", accent: "text-yellow-deep" },
@@ -407,30 +407,30 @@ const Dashboard = () => {
           ].map((k) => (
             <div
               key={k.label}
-              className="bg-paper-elevated border border-border p-4 md:p-5 hover:border-ink/40 hover:shadow-card transition-all"
+              className="bg-paper-elevated border border-border p-2.5 sm:p-3 md:p-5 hover:border-ink/40 hover:shadow-card transition-all"
             >
-              <div className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{k.label}</div>
-              <div className={`display-serif text-3xl md:text-4xl font-light mt-2 ${k.accent} tabular-nums`}>
+              <div className="text-[7px] sm:text-[8px] md:text-[10px] uppercase tracking-[0.2em] text-muted-foreground leading-tight">{k.label}</div>
+              <div className={`display-serif text-2xl sm:text-3xl md:text-4xl font-light mt-1 sm:mt-1.5 md:mt-2 ${k.accent} tabular-nums`}>
                 {k.value}
               </div>
-              <div className="text-xs text-ink-soft mt-1">{k.sub}</div>
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-ink-soft mt-0.5 sm:mt-1">{k.sub}</div>
             </div>
           ))}
         </section>
 
         {/* Stage journey */}
-        <section className="bg-paper-elevated border border-border p-4 md:p-6 lg:p-8 animate-fade-up">
-          <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+        <section className="bg-paper-elevated border border-border p-3 md:p-6 lg:p-8 animate-fade-up">
+          <div className="flex items-end justify-between flex-wrap gap-2 sm:gap-4 mb-4 md:mb-8">
             <div>
-              <div className="eyebrow mb-2">
-                <span className="h-px w-6 bg-yellow" />
+              <div className="eyebrow mb-1 sm:mb-2">
+                <span className="h-px w-4 sm:w-6 bg-yellow" />
                 Stage trajectory
               </div>
-              <h2 className="display-serif text-2xl md:text-3xl font-light text-ink">
+              <h2 className="display-serif text-lg sm:text-xl md:text-2xl lg:text-3xl font-light text-ink">
                 Current position vs. target stages
               </h2>
             </div>
-            <div className="text-xs text-muted-foreground max-w-xs text-right">
+            <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground max-w-xs text-right hidden sm:block">
               5-stage GARIX maturity ladder · weighted composite of 9 dimensions
             </div>
           </div>
@@ -438,15 +438,15 @@ const Dashboard = () => {
         </section>
 
         {/* Radar + summary */}
-        <section id="dimensions" className="grid lg:grid-cols-5 gap-4 md:gap-6 animate-fade-up">
-          <div className="lg:col-span-3 bg-paper-elevated border border-border p-4 md:p-6 lg:p-8">
-            <div className="flex items-end justify-between mb-6">
+        <section id="dimensions" className="grid lg:grid-cols-5 gap-3 md:gap-4 lg:gap-6 animate-fade-up">
+          <div className="lg:col-span-3 bg-paper-elevated border border-border p-3 md:p-6 lg:p-8">
+            <div className="flex items-end justify-between mb-4 md:mb-6">
               <div>
-                <div className="eyebrow mb-2">
-                  <span className="h-px w-6 bg-yellow" />
+                <div className="eyebrow mb-1 sm:mb-2">
+                  <span className="h-px w-4 sm:w-6 bg-yellow" />
                   9-dimension profile
                 </div>
-                <h2 className="display-serif text-2xl md:text-3xl font-light text-ink">
+                <h2 className="display-serif text-lg sm:text-xl md:text-2xl lg:text-3xl font-light text-ink">
                   Dimension scores
                 </h2>
               </div>
@@ -458,17 +458,17 @@ const Dashboard = () => {
               onSelect={setRadarSelected}
             />
           </div>
-          <div className="lg:col-span-2 bg-ink text-paper p-4 md:p-6 relative overflow-hidden">
+          <div className="lg:col-span-2 bg-ink text-paper p-3 md:p-6 relative overflow-hidden">
             <div className="absolute inset-0 bg-grid opacity-[0.04]" />
             <div className="relative h-full flex flex-col">
-              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-yellow font-semibold mb-3">
-                <span className="h-px w-6 bg-yellow" />
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-yellow font-semibold mb-2 sm:mb-3">
+                <span className="h-px w-4 sm:w-6 bg-yellow" />
                 All Dimensions
               </div>
-              <h3 className="display-serif text-lg md:text-xl font-light mb-4">
+              <h3 className="display-serif text-base sm:text-lg md:text-xl font-light mb-3 sm:mb-4">
                 Tap or click the chart to explore
               </h3>
-              <ul className="space-y-1.5 flex-1">
+              <ul className="space-y-1 sm:space-y-1.5 flex-1">
                 {activeDimensions.map((d, i) => {
                   const isActive = activeIdx === i;
                   return (
@@ -500,7 +500,7 @@ const Dashboard = () => {
                       </div>
                       <span
                         className={cn(
-                          "tabular-nums text-xs md:text-sm font-semibold w-6 md:w-7 text-right flex-shrink-0 transition-colors",
+                          "tabular-nums text-[10px] sm:text-xs md:text-sm font-semibold w-5 sm:w-6 md:w-7 text-right flex-shrink-0 transition-colors",
                           isActive ? "text-yellow" : "text-paper/60"
                         )}
                       >
@@ -510,7 +510,7 @@ const Dashboard = () => {
                   );
                 })}
               </ul>
-              <div className="mt-4 pt-4 border-t border-paper/15 text-xs text-paper/50 leading-relaxed">
+              <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-paper/15 text-[10px] sm:text-xs text-paper/50 leading-relaxed">
                 Strategy &amp; Risk Management carry a{" "}
                 <span className="text-yellow font-semibold">1.5×</span> weighting in the composite.
               </div>
@@ -520,17 +520,17 @@ const Dashboard = () => {
 
         {/* Heat map */}
         <section className="animate-fade-up">
-          <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
+          <div className="flex items-end justify-between flex-wrap gap-2 sm:gap-4 mb-4 md:mb-6">
             <div>
-              <div className="eyebrow mb-2">
-                <span className="h-px w-6 bg-yellow" />
+              <div className="eyebrow mb-1 sm:mb-2">
+                <span className="h-px w-4 sm:w-6 bg-yellow" />
                 Sub-dimension heat map
               </div>
-              <h2 className="display-serif text-xl md:text-2xl lg:text-3xl font-light text-ink">
+              <h2 className="display-serif text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-light text-ink">
                 27 indicators across 9 GARIX pillars
               </h2>
             </div>
-            <p className="text-sm text-ink-soft max-w-md">
+            <p className="text-[10px] sm:text-xs md:text-sm text-ink-soft max-w-md">
               Click a dimension to expand its sub-indicators. Filter by priority to focus the
               executive narrative.
             </p>
@@ -540,32 +540,32 @@ const Dashboard = () => {
 
         {/* Benchmarks */}
         <section id="benchmarks" className="animate-fade-up">
-          <div className="mb-6">
-            <div className="eyebrow mb-2">
-              <span className="h-px w-6 bg-yellow" />
+          <div className="mb-4 md:mb-6">
+            <div className="eyebrow mb-1 sm:mb-2">
+              <span className="h-px w-4 sm:w-6 bg-yellow" />
               Peer & sector benchmarks
             </div>
-            <h2 className="display-serif text-xl md:text-2xl lg:text-3xl font-light text-ink">
+            <h2 className="display-serif text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-light text-ink">
               How you compare across the GARIX cohort
             </h2>
           </div>
 
           {/* Comparison bar */}
-          <div className="bg-paper-elevated border border-border p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
-            <p className="text-sm text-muted-foreground mb-5">
+          <div className="bg-paper-elevated border border-border p-3 md:p-6 lg:p-8 mb-3 md:mb-4 lg:mb-6">
+            <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-3 sm:mb-4 md:mb-5">
               Your GARIX score benchmarked against EY's India GCC cohort — filtered by industry and GCC size.
             </p>
 
-            <div className="relative">
+            <div className="relative overflow-hidden">
               {/* Dot labels above the bar */}
-              <div className="relative h-10 mb-1">
+              <div className="relative h-8 sm:h-10 mb-1">
                 {/* YOU label */}
                 <div
                   className="absolute -translate-x-1/2 flex flex-col items-center transition-all duration-1000"
                   style={{ left: `${Math.max(0, Math.min(100, ((activeProfile.composite - 1) / 4) * 100))}%` }}
                 >
-                  <span className="text-[9px] uppercase tracking-wider font-bold text-yellow mb-1">You</span>
-                  <div className="h-5 w-5 rounded-full bg-yellow text-ink flex items-center justify-center text-[9px] font-bold">
+                  <span className="text-[8px] sm:text-[9px] uppercase tracking-wider font-bold text-yellow mb-0.5 sm:mb-1">You</span>
+                  <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-yellow text-ink flex items-center justify-center text-[8px] sm:text-[9px] font-bold">
                     Y
                   </div>
                 </div>
@@ -574,15 +574,15 @@ const Dashboard = () => {
                   className="absolute -translate-x-1/2 flex flex-col items-center transition-all duration-1000"
                   style={{ left: `${Math.max(0, Math.min(100, ((activeProfile.peerAvg - 1) / 4) * 100))}%` }}
                 >
-                  <span className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground mb-1">Med</span>
-                  <div className="h-5 w-5 rounded-full bg-muted-foreground/60 text-paper flex items-center justify-center text-[9px] font-bold">
+                  <span className="text-[8px] sm:text-[9px] uppercase tracking-wider font-bold text-muted-foreground mb-0.5 sm:mb-1">Med</span>
+                  <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-muted-foreground/60 text-paper flex items-center justify-center text-[8px] sm:text-[9px] font-bold">
                     M
                   </div>
                 </div>
               </div>
 
               {/* Stage gradient bar — filled to user score */}
-              <div className="relative h-2.5 w-full bg-border rounded-full overflow-visible">
+              <div className="relative h-2 sm:h-2.5 w-full bg-border rounded-full overflow-visible">
                 <div
                   className="h-full bg-gradient-stage rounded-full transition-all duration-1000"
                   style={{ width: `${Math.max(0, Math.min(100, ((activeProfile.composite - 1) / 4) * 100))}%` }}
@@ -590,7 +590,7 @@ const Dashboard = () => {
               </div>
 
               {/* Stage labels below */}
-              <div className="relative h-8 mt-3">
+              <div className="relative h-10 sm:h-8 mt-2 sm:mt-3 overflow-hidden">
                 {[
                   { name: "AI Aware", range: "1–2", score: 1 },
                   { name: "AI Embedded", range: "2–3", score: 2 },
@@ -608,8 +608,8 @@ const Dashboard = () => {
                       className="absolute flex flex-col"
                       style={{ left, transform: `translateX(${trans})`, textAlign: align as any }}
                     >
-                      <span className="text-[10px] font-medium text-ink-soft whitespace-nowrap">{s.name}</span>
-                      <span className="text-[9px] text-muted-foreground">{s.range}</span>
+                      <span className="text-[9px] sm:text-[10px] font-medium text-ink-soft whitespace-nowrap">{s.name}</span>
+                      <span className="text-[8px] sm:text-[9px] text-muted-foreground">{s.range}</span>
                     </div>
                   );
                 })}
@@ -617,7 +617,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="text-[10px] uppercase tracking-[0.22em] font-semibold text-ink mb-3">
+          <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.22em] font-semibold text-ink mb-2 sm:mb-3">
             Benchmark comparisons
           </div>
           <Benchmarks />

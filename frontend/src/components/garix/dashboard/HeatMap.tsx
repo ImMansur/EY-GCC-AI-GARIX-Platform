@@ -23,8 +23,8 @@ export const HeatMap = () => {
   return (
     <div>
       {/* filters */}
-      <div className="flex flex-wrap items-center gap-2 mb-6">
-        <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mr-2">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-6">
+        <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-muted-foreground mr-1 sm:mr-2">
           Filter
         </span>
         {(["ALL", "CRITICAL", "HIGH", "MONITOR", "STRENGTH"] as const).map((p) => (
@@ -32,7 +32,7 @@ export const HeatMap = () => {
             key={p}
             onClick={() => setFilter(p)}
             className={[
-              "text-[11px] uppercase tracking-wider px-3 py-1.5 border transition-all",
+              "text-[10px] sm:text-[11px] uppercase tracking-wider px-2 sm:px-3 py-1 sm:py-1.5 border transition-all",
               filter === p
                 ? "bg-ink text-paper border-ink"
                 : "bg-paper-elevated text-ink-soft border-border hover:border-ink",
@@ -56,15 +56,15 @@ export const HeatMap = () => {
             <div key={d.key}>
               <button
                 onClick={() => setOpen(isOpen ? null : d.key)}
-                className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-muted/40 transition-colors"
+                className="w-full flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4 text-left hover:bg-muted/40 transition-colors"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <span className="display-serif text-lg font-medium text-ink">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="display-serif text-base sm:text-lg font-medium text-ink">
                       {d.name}
                     </span>
                     {d.weight > 1 && (
-                      <span className="text-[9px] uppercase tracking-wider text-yellow-deep border border-yellow/50 px-1.5 py-0.5">
+                      <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-yellow-deep border border-yellow/50 px-1 sm:px-1.5 py-0.5">
                         1.5× weighted
                       </span>
                     )}
@@ -92,7 +92,7 @@ export const HeatMap = () => {
               </button>
 
               {isOpen && (
-                <div className="px-5 pb-5 animate-fade-in">
+                <div className="px-3 sm:px-5 pb-4 sm:pb-5 animate-fade-in">
                   <div className="grid gap-2">
                     {filtered.map((ind) => (
                       <div

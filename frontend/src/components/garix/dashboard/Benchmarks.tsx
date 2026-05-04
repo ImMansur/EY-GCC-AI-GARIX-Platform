@@ -37,18 +37,18 @@ export const Benchmarks = () => {
             >
               <span className={`h-2.5 w-2.5 rounded-full ${b.dotClass} shrink-0`} />
               <span
-                className={`flex-1 text-sm md:text-[15px] ${
+                className={`flex-1 text-xs sm:text-sm md:text-[15px] leading-tight ${
                   isSelf ? "font-semibold text-ink" : "text-ink-soft"
                 }`}
               >
                 {b.label}
               </span>
-              <span className="display-serif text-2xl md:text-3xl font-light text-ink tabular-nums">
+              <span className="display-serif text-xl sm:text-2xl md:text-3xl font-light text-ink tabular-nums">
                 {b.score.toFixed(1)}
               </span>
               {chip && (
                 <span
-                  className={`text-[10px] uppercase tracking-wider font-semibold px-2.5 py-1 border rounded-full ${chip.cls}`}
+                  className={`hidden sm:inline-block text-[10px] uppercase tracking-wider font-semibold px-2.5 py-1 border rounded-full ${chip.cls}`}
                 >
                   {chip.text}
                 </span>

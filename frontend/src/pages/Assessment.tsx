@@ -150,9 +150,9 @@ const Assessment = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans">
-        <div className="h-8 w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-4" />
-        <div className="text-ink-soft text-sm uppercase tracking-wider font-semibold animate-pulse mb-1">
+      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans px-4">
+        <div className="h-6 w-6 sm:h-8 sm:w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-3 sm:mb-4" />
+        <div className="text-ink-soft text-xs sm:text-sm uppercase tracking-wider font-semibold animate-pulse mb-1 text-center">
           {`Tailoring questions for ${role ? role : "your role"} in ${persona ? persona : "your area"}...`}
         </div>
       </div>
@@ -162,10 +162,10 @@ const Assessment = () => {
 
   if (submitting) {
     return (
-      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans">
-        <div className="h-8 w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-4" />
-        <div className="text-ink-soft text-lg font-semibold mb-1">Processing your assessment...</div>
-        <div className="text-muted-foreground text-sm">Generating your GARIX maturity profile</div>
+      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans px-4">
+        <div className="h-6 w-6 sm:h-8 sm:w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-3 sm:mb-4" />
+        <div className="text-ink-soft text-base sm:text-lg font-semibold mb-1 text-center">Processing your assessment...</div>
+        <div className="text-muted-foreground text-xs sm:text-sm text-center">Generating your GARIX maturity profile</div>
       </div>
     );
   }
@@ -280,7 +280,7 @@ const Assessment = () => {
   return (
     <div className="flex h-screen bg-paper text-ink font-sans overflow-hidden">
       {/* ── Sidebar ── */}
-      <aside className="w-64 flex-shrink-0 border-r border-border flex flex-col overflow-hidden bg-paper-elevated">
+      <aside className="hidden lg:flex w-64 flex-shrink-0 border-r border-border flex-col overflow-hidden bg-paper-elevated">
         {/* Logo — mirrors Header.tsx */}
         <div className="px-5 py-4 border-b border-border flex items-center gap-2.5">
           <div className="relative h-8 w-8 bg-ink flex items-center justify-center flex-shrink-0">
@@ -383,9 +383,79 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
       {/* ── Main content ── */}
       <div className="flex-1 flex flex-col overflow-hidden bg-paper">
 
-        {/* Top bar */}
-        <div className="flex-shrink-0 bg-paper-elevated border-b border-border">
-          <div className="flex items-center justify-between px-8 py-3.5">
+        {/* Top bar with dimension tabs (mobile) and breadcrumb (desktop) - STICKY ON MOBILE */}
+        <div className="flex-shrink-0 bg-paper-elevated border-b border-border lg:relative sticky top-0 z-10">
+          {/* Mobile: Q indicator and dimension tabs */}
+          <div className="lg:hidden bg-paper-elevated">
+            {/* Question indicator row */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border">
+              <span className="text-sm font-medium text-muted-foreground">
+                Q{globalQNum}/{TOTAL}
+              </span>
+              <span className="text-sm font-bold text-yellow-deep">
+                {progress}%
+              </span>
+            </div>
+            
+            {/* Dimension tabs */}
+            <div className="overflow-x-auto overflow-y-hidden px-4 py-3">
+              <div className="flex items-center gap-2 min-w-max">
+                {assessmentDimensions.map((d, dIdx) => {
+                  const isActiveDim = dIdx === activeDimIdx;
+                  return (
+                    <button
+                      key={d.key}
+                      onClick={() => jumpTo(dIdx, 0)}
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium whitespace-nowrap transition-all rounded-full",
+                        isActiveDim
+                          ? "bg-yellow text-ink"
+                          : "text-muted-foreground hover:text-ink"
+                      )}
+                    >
+                      {d.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Question picker for mobile - always visible but scrollable */}
+            <div className="px-4 py-2 bg-paper-elevated border-t border-border overflow-x-auto overflow-y-hidden">
+              <div className="flex gap-2 min-w-max">
+                {questions
+                  .filter(q =>
+                    q.dimension_name.toLowerCase().includes(assessmentDimensions[activeDimIdx].name.toLowerCase())
+                  )
+                  .map((q, qIdx) => {
+                    const isActiveQ = qIdx === activeQIdx;
+                    const isAnswered = !!answers[q.id];
+                    const isFlaggedQ = flagged.has(q.id);
+                    return (
+                      <button
+                        key={q.id}
+                        onClick={() => jumpTo(activeDimIdx, qIdx)}
+                        className={cn(
+                          "h-8 w-8 text-xs font-semibold transition-all flex items-center justify-center rounded flex-shrink-0",
+                          isActiveQ
+                            ? "bg-yellow text-ink"
+                            : isAnswered
+                            ? "bg-ink text-paper"
+                            : isFlaggedQ
+                            ? "bg-orange-50 text-orange-600 border border-orange-300"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                      >
+                        {qIdx + 1}
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Breadcrumb */}
+          <div className="hidden lg:flex items-center justify-between px-8 py-3.5">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>Assessment</span>
               <span className="text-border">/</span>
@@ -408,35 +478,37 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
         </div>
 
         {/* Question area */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-8 py-10">
+        <div className="flex-1 overflow-y-auto pb-32 lg:pb-0">
+          <div className="max-w-2xl mx-auto px-4 py-4 lg:px-8 lg:py-10">
             {/* Dimension tag */}
             <div className={cn("inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-muted border border-border mb-6", dim.color)}>
               <span className="h-1.5 w-1.5 rounded-full bg-current" />
               {dim.name}
             </div>
 
-            {/* Question number badge — editorial style matching Diagnostic.tsx */}
+            {/* Question number badge */}
             <div className="inline-flex items-center gap-3 mb-6">
               <span className="bg-ink text-paper text-xs font-semibold uppercase tracking-[0.18em] px-3 py-1.5">
                 Q{globalQNum} of {TOTAL}
               </span>
               <span className="h-px w-8 bg-border" />
             </div>
+            
+            {/* Focus Area */}
             <div className="mb-6">
-  <div className="inline-flex items-center gap-2">
-    <span className="h-px w-4 bg-yellow-deep" />
-    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-      Focus Area
-    </span>
-  </div>
-  <div className="mt-2 text-sm font-semibold text-ink leading-snug">
-    {question.sub_dimension?.replace(/^[^-]+-\s*/, "")}
-  </div>
-</div>
+              <div className="inline-flex items-center gap-2">
+                <span className="h-px w-4 bg-yellow-deep" />
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Focus Area
+                </span>
+              </div>
+              <div className="mt-2 text-sm font-semibold text-ink leading-snug">
+                {question.sub_dimension?.replace(/^[^-]+-\s*/, "")}
+              </div>
+            </div>
 
             {/* Question text — display-serif matching Index page headings */}
-            <h2 className="display-serif text-2xl md:text-[1.7rem] font-light text-ink leading-relaxed mb-8 text-balance">
+            <h2 className="display-serif text-xl md:text-2xl lg:text-[1.7rem] font-light text-ink leading-relaxed mb-6 lg:mb-8 text-balance">
               {question.question}
             </h2>
 
@@ -465,7 +537,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                     key={opt.key}
                     onClick={() => handleAnswer(opt.key)}
                     className={cn(
-                      "w-full text-left flex items-start gap-4 p-5 border transition-all group",
+                      "w-full text-left flex items-start gap-3 p-4 lg:p-5 border transition-all group",
                       isSelected
                         ? "border-yellow bg-yellow/5 shadow-yellow/20"
                         : "border-border bg-paper-elevated hover:border-yellow hover:shadow-card"
@@ -482,7 +554,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                       {opt.key}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className={cn("text-sm font-semibold mb-0.5", isSelected ? "text-yellow-deep" : "text-ink")}>
+                      <div className={cn("text-sm font-semibold mb-1", isSelected ? "text-yellow-deep" : "text-ink")}>
                         {opt.label}
                       </div>
                       <div className="text-xs text-muted-foreground leading-relaxed">{opt.description}</div>
@@ -498,12 +570,12 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
         </div>
 
         {/* Bottom nav */}
-        <div className="flex items-center justify-between px-8 py-4 border-t border-border bg-paper-elevated flex-shrink-0">
+        <div className="fixed inset-x-3 bottom-12 z-20 flex items-center justify-between gap-3 rounded-xl border border-border bg-paper-elevated px-3 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.14)] lg:relative lg:inset-auto lg:bottom-auto lg:gap-0 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:px-8 lg:py-4 lg:shadow-none">
           <button
             onClick={goPrev}
             disabled={isFirst}
             className={cn(
-              "inline-flex items-center gap-2 text-sm font-medium transition-colors",
+              "inline-flex min-w-0 items-center gap-2 text-sm font-medium transition-colors",
               isFirst ? "text-muted-foreground/40 cursor-not-allowed" : "text-muted-foreground hover:text-ink"
             )}
           >
@@ -511,7 +583,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
             Previous
           </button>
 
-          <div className="text-[11px] text-muted-foreground">
+          <div className="hidden text-[11px] text-muted-foreground sm:block">
             {answeredCount} of {TOTAL} answered
           </div>
 
@@ -519,7 +591,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
             onClick={goNext}
             disabled={submitting}
             className={cn(
-              "inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold transition-all",
+              "inline-flex min-w-0 items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-all lg:px-6",
               currentAnswer && !submitting
                 ? "bg-yellow text-ink hover:shadow-yellow"
                 : "bg-muted text-muted-foreground cursor-not-allowed"

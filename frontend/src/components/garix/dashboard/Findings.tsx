@@ -23,13 +23,13 @@ export const Findings = () => {
   return (
     <div>
       {/* Dimension tabs */}
-      <div className="flex flex-wrap gap-2 mb-8 border-b border-border pb-4">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-6 sm:mb-8 border-b border-border pb-3 sm:pb-4 overflow-x-auto">
         {dimensionTabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveDim(tab.key)}
             className={`
-              flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium tracking-wide
+              flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-medium tracking-wide whitespace-nowrap
               border transition-all duration-200
               ${
                 activeDim === tab.key
@@ -45,27 +45,27 @@ export const Findings = () => {
       </div>
 
       {/* Finding cards */}
-      <div className="grid md:grid-cols-2 gap-5">
+      <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
         {sortedFindings.filter(f => !f.dimensionKey || f.dimensionKey === activeDim).map((f) => {
           const m = meta[f.label] || { Icon: Zap, accent: "text-ink", bar: "bg-ink" };
           return (
             <article
               key={`${f.label}-${f.title}`}
-              className="relative bg-paper-elevated border border-border p-6 hover:border-ink/40 hover:shadow-card transition-all duration-300 group"
+              className="relative bg-paper-elevated border border-border p-4 sm:p-6 hover:border-ink/40 hover:shadow-card transition-all duration-300 group"
             >
               <span className={`absolute left-0 top-0 bottom-0 w-1 ${m.bar}`} />
-              <div className="flex items-start gap-2.5 mb-3">
-                <m.Icon className={`h-4 w-4 shrink-0 mt-0.5 ${m.accent}`} />
-                <span className={`text-[10px] uppercase tracking-[0.18em] font-bold leading-relaxed ${m.accent}`}>
+              <div className="flex items-start gap-2 sm:gap-2.5 mb-2 sm:mb-3">
+                <m.Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 mt-0.5 ${m.accent}`} />
+                <span className={`text-[9px] sm:text-[10px] uppercase tracking-[0.18em] font-bold leading-relaxed ${m.accent}`}>
                   {f.label} — {f.title}
                 </span>
               </div>
-              <h3 className="display-serif text-xl font-medium text-ink leading-snug mb-3">
+              <h3 className="display-serif text-lg sm:text-xl font-medium text-ink leading-snug mb-2 sm:mb-3">
                 {f.subtitle}
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2 sm:space-y-2.5">
                 {f.points?.map((p, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-ink-soft leading-relaxed text-pretty">
+                  <li key={i} className="flex gap-2 sm:gap-3 text-xs sm:text-sm text-ink-soft leading-relaxed text-pretty">
                     <span className="mt-2 h-1 w-1 rounded-full bg-ink-soft shrink-0" />
                     <span>{p}</span>
                   </li>

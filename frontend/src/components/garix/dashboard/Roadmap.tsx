@@ -25,21 +25,21 @@ export const Roadmap = () => {
   return (
     <div className="space-y-8">
       {/* Header card */}
-      <div className="bg-paper-elevated border border-border p-6 md:p-10">
+      <div className="bg-paper-elevated border border-border p-4 sm:p-6 md:p-10">
         <div className="mb-6 space-y-4">
           <div>
             <div className="eyebrow mb-3">
               <span className="h-px w-6 bg-yellow" />
               Your AI transformation roadmap
             </div>
-            <h2 className="display-serif text-3xl md:text-4xl font-light text-ink leading-tight max-w-3xl">
+            <h2 className="display-serif text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light text-ink leading-tight max-w-3xl">
               {plan.pathTitle}
             </h2>
           </div>
 
           {/* Duration selector */}
           <div
-            className="inline-flex p-1 bg-muted border border-border rounded-full"
+            className="inline-flex p-0.5 sm:p-1 bg-muted border border-border rounded-full overflow-x-auto"
             role="tablist"
             aria-label="Roadmap duration"
           >
@@ -52,7 +52,7 @@ export const Roadmap = () => {
                   aria-selected={active}
                   onClick={() => setDuration(d)}
                   className={[
-                    "px-4 py-1.5 text-xs font-semibold tracking-wide uppercase rounded-full transition-all",
+                    "px-3 sm:px-4 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold tracking-wide uppercase rounded-full transition-all whitespace-nowrap",
                     active
                       ? "bg-ink text-paper shadow-card"
                       : "text-muted-foreground hover:text-ink",
@@ -65,7 +65,7 @@ export const Roadmap = () => {
           </div>
         </div>
 
-        <p className="text-ink-soft max-w-3xl leading-relaxed">
+        <p className="text-sm sm:text-base text-ink-soft max-w-3xl leading-relaxed">
           Your current GARIX score is{" "}
           <span className="text-ink font-semibold">{clientProfile.composite}</span> (Stage{" "}
           {clientProfile.currentStage}). Here is your personalised{" "}

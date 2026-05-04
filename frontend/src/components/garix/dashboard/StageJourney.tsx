@@ -15,7 +15,7 @@ export const StageJourney = () => {
         aria-hidden
       />
 
-      <ol className="relative grid grid-cols-5 gap-2">
+      <ol className="relative grid grid-cols-5 gap-1 sm:gap-2">
         {stages.map((s) => {
           const isCurrent = s.n === clientProfile.currentStage;
           const isDone = s.n < clientProfile.currentStage;
@@ -24,7 +24,7 @@ export const StageJourney = () => {
             <li key={s.n} className="flex flex-col items-center text-center group">
               <div
                 className={[
-                  "relative h-14 w-14 flex items-center justify-center transition-all duration-500",
+                  "relative h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 flex items-center justify-center transition-all duration-500",
                   isCurrent
                     ? "bg-ink text-yellow shadow-yellow scale-110"
                     : isDone
@@ -33,27 +33,27 @@ export const StageJourney = () => {
                 ].join(" ")}
               >
                 {isDone ? (
-                  <Check className="h-5 w-5" />
+                  <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                 ) : (
-                  <span className="display-serif text-lg font-medium">0{s.n}</span>
+                  <span className="display-serif text-base sm:text-lg font-medium">0{s.n}</span>
                 )}
                 {isCurrent && (
                   <span className="absolute -inset-1 border border-yellow animate-pulse pointer-events-none" />
                 )}
               </div>
-              <div className="mt-3 px-1">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="mt-2 sm:mt-3 px-0.5 sm:px-1">
+                <div className="text-[8px] sm:text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                   Stage {s.n}
                 </div>
                 <div
                   className={[
-                    "text-sm font-semibold mt-0.5",
+                    "text-xs sm:text-sm font-semibold mt-0.5 leading-tight",
                     isCurrent ? "text-ink" : isDone ? "text-ink-soft" : "text-muted-foreground",
                   ].join(" ")}
                 >
                   {s.label}
                 </div>
-                <div className="mt-1 text-[10px] text-muted-foreground min-h-[14px]">
+                <div className="mt-1 text-[8px] sm:text-[10px] text-muted-foreground min-h-[12px] sm:min-h-[14px]">
                   {isCurrent && `★ Current · ${clientProfile.composite.toFixed(1)}`}
                   {isDone && "Completed"}
                   {!isCurrent && !isDone && target && `Target · ${target.in}`}
