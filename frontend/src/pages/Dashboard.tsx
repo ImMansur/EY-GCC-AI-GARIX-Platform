@@ -218,6 +218,29 @@ const Dashboard = () => {
   const userName = res?.user_name || "Mansur Javid";
   const userInitials = userName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
   const userRole = res?.role || "Partner · GCC Advisory";
+  const retakeSearchParams = new URLSearchParams();
+  const retakePersona = res?.persona || searchParams.get("persona") || "";
+  const retakeRole = res?.role || searchParams.get("role") || "";
+  const retakeSector = res?.sector || searchParams.get("sector") || "";
+
+  if (retakePersona) {
+    retakeSearchParams.set("persona", retakePersona);
+  }
+  if (retakeRole) {
+    retakeSearchParams.set("role", retakeRole);
+  }
+  if (retakeSector) {
+    retakeSearchParams.set("sector", retakeSector);
+  }
+
+  const handleRetakeAssessment = () => {
+    if (!retakePersona || !retakeRole) {
+      navigate("/onboarding");
+      return;
+    }
+
+    navigate(`/assessment?${retakeSearchParams.toString()}`);
+  };
 
   return (
     <DashboardContext.Provider value={contextValue}>
@@ -312,6 +335,13 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="hidden md:flex items-center gap-2">
+                  <button
+                    onClick={handleRetakeAssessment}
+                    className="inline-flex items-center gap-2 border border-border bg-paper px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:border-ink/40 hover:bg-muted"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Retake Assessment
+                  </button>
                   <button className="inline-flex items-center gap-2 bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-ink-soft transition-colors group">
                     <Download className="h-4 w-4" />
                     Export PDF
@@ -334,6 +364,16 @@ const Dashboard = () => {
                     <div className="text-xs sm:text-sm text-ink font-medium leading-snug">{m.value}</div>
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-4 md:hidden">
+                <button
+                  onClick={handleRetakeAssessment}
+                  className="inline-flex w-full items-center justify-center gap-2 border border-border bg-paper px-4 py-3 text-sm font-medium text-ink transition-colors hover:border-ink/40 hover:bg-muted"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Retake Assessment
+                </button>
               </div>
             </div>
 
