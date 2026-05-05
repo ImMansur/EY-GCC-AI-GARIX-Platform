@@ -79,19 +79,28 @@ def compute_scores(answers: list[AnswerItem]) -> dict:
     """Compute per-dimension and composite weighted GARIX score with sub-dimensions."""
 
     dimension_map = {}
+    sub_dimension_order = {}  # Track order subdimensions first appear
+    order_counter = 0
     total_weighted = 0.0
     total_weight = 0.0
 
-    # Group answers by dimension -> sub_dimension
+    # Group answers by dimension -> sub_dimension, preserving order
     for a in answers:
         dimension_map.setdefault(a.dimension_id, {
             "name": a.dimension_name,
             "sub_dimensions": {}
         })
         sub_dims = dimension_map[a.dimension_id]["sub_dimensions"]
+        
+        # Track first appearance order
+        if a.sub_dimension_id not in sub_dimension_order:
+            sub_dimension_order[a.sub_dimension_id] = order_counter
+            order_counter += 1
+        
         sub_dims.setdefault(a.sub_dimension_id, {
             "name": a.sub_dimension_name,
-            "scores": []
+            "scores": [],
+            "order": sub_dimension_order[a.sub_dimension_id]
         })
         sub_dims[a.sub_dimension_id]["scores"].append(a.selected_option)
 
@@ -107,7 +116,8 @@ def compute_scores(answers: list[AnswerItem]) -> dict:
             sub_dims_list.append({
                 "sub_dimension_id": sub_id,
                 "sub_dimension_name": sub_data["name"],
-                "score": round(sub_avg, 2)
+                "score": round(sub_avg, 2),
+                "order": sub_data["order"]
             })
 
         avg_score = dim_total / len(sub_dims_list) if sub_dims_list else 0
@@ -118,13 +128,18 @@ def compute_scores(answers: list[AnswerItem]) -> dict:
         total_weighted += weighted_score
         total_weight += weight
 
+        # Sort by order index to preserve question sequence, then remove order field
+        sorted_sub_dims = sorted(sub_dims_list, key=lambda x: x["order"])
+        for sd in sorted_sub_dims:
+            del sd["order"]
+
         dimension_scores.append({
             "dimension_id": dim_id,
             "dimension_name": data["name"],
             "score": round(avg_score, 2),
             "weight": weight,
             "weighted_score": round(weighted_score, 2),
-            "sub_dimensions": sorted(sub_dims_list, key=lambda x: x["sub_dimension_id"])
+            "sub_dimensions": sorted_sub_dims
         })
 
     composite = round(total_weighted / total_weight, 2) if total_weight > 0 else 0

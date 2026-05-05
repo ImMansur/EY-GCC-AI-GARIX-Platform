@@ -97,21 +97,28 @@ const Dashboard = () => {
     });
     if (!apiDim) return d;
 
-    const indicators = apiDim.sub_dimensions?.map((sd: any, idx: number) => {
+    // Get peer benchmark for this dimension (use median as peer comparison)
+    const dimBenchmark = res.benchmarks?.dimensions?.[apiDim.dimension_id]?.median ?? 2.5;
+
+    const indicators = apiDim.sub_dimensions?.map((sd: any) => {
       let priority: "STRENGTH" | "MONITOR" | "HIGH" | "CRITICAL" = "MONITOR";
       if (sd.score >= 4) priority = "STRENGTH";
       else if (sd.score <= 2) priority = "CRITICAL";
       else if (sd.score <= 2.5) priority = "HIGH";
       
-      const origInd = d.indicators[idx];
-      const peer = origInd ? origInd.peer : 2.5;
+      // Use actual subdimension name from API
+      const name = sd.sub_dimension_name || "Unknown";
+      
+      // Use dimension-level peer benchmark for all subdimensions
+      const peer = dimBenchmark;
       const gap = sd.score - peer;
-      const name = origInd ? origInd.name : sd.sub_dimension_name;
 
       return {
         name,
         client: sd.score,
-        peer, gap, priority
+        peer,
+        gap,
+        priority
       };
     }) || d.indicators;
 
