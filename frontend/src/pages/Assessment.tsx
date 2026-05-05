@@ -93,7 +93,7 @@ const Assessment = () => {
       setTimeout(() => setLoading(false), 1800);
       return;
     }
-    fetch(`${API_BASE}/generate-questions`, {
+    fetch(`${API_BASE}/api/generate-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ persona, role }),
