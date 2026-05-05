@@ -84,7 +84,7 @@ def write_to_blob(blob_name: str, data: dict):
     blob_client.upload_blob(json.dumps(data), overwrite=True)
 
 # -------------------- MAIN API --------------------
-@app.post("/generate-questions")
+@app.post("/api/generate-questions")
 def get_questions(req: AssessmentRequest):
     blob_name = get_blob_name(req.persona, req.role)
 
