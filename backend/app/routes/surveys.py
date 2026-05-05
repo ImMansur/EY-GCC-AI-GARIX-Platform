@@ -287,12 +287,23 @@ def update_benchmark_aggregates(role: str, sector: str, scores: dict):
         except Exception as e:
             print(f"Error updating aggregate {key}: {e}")
 
+def generate_insights_background(survey_id: str, uid: str, persona: str, role: str, sector: str, scores: dict):
+    """Background task to generate insights after survey submission"""
+    try:
+        db = get_db()
+        insights = generate_insights(persona, role, sector, scores)
+        
+        # Update both collections
+        db.collection("surveys").document(survey_id).update({"insights": insights})
+        db.collection("users").document(uid).collection("surveys").document(survey_id).update({"insights": insights})
+    except Exception as e:
+        print(f"Error generating insights in background: {e}")
+
 @router.post("/survey/submit")
 async def submit_survey(submission: SurveySubmission, background_tasks: BackgroundTasks):
     try:
         db = get_db()
         scores = compute_scores(submission.answers)
-        insights = generate_insights(submission.persona, submission.role, submission.sector, scores)
 
         user_doc = db.collection("users").document(submission.uid).get()
         user_data = user_doc.to_dict() if user_doc.exists else {}
@@ -318,7 +329,7 @@ async def submit_survey(submission: SurveySubmission, background_tasks: Backgrou
             "sector": submission.sector,
             "answers": [a.model_dump() for a in submission.answers],
             "scores": scores,
-            "insights": insights,
+            "insights": None,  # Will be generated in background
             "benchmarks": benchmark_data,
             "roadmap": None,
             "submitted_at": datetime.now(timezone.utc).isoformat(),
@@ -333,13 +344,15 @@ async def submit_survey(submission: SurveySubmission, background_tasks: Backgrou
 
         db.collection("surveys").document(doc_ref.id).set(survey_data)
         
+        # Generate insights in background (this takes 2-5 seconds)
+        background_tasks.add_task(generate_insights_background, doc_ref.id, submission.uid, submission.persona, submission.role, submission.sector, scores)
         background_tasks.add_task(update_benchmark_aggregates, submission.role, submission.sector, scores)
 
         return {
             "status": "ok",
             "survey_id": doc_ref.id,
             "scores": scores,
-            "insights": insights,
+            "insights": None,  # Frontend will show loading state
         }
 
     except Exception as e:
