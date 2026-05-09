@@ -36,9 +36,9 @@ export const Footer = () => {
           </div>
           <ul className="space-y-2.5 text-sm">
             <li>10–14 working days</li>
-            <li>9 dimensions · 45 sub-dimensions</li>
+            <li>9 dimensions · 27 sub-dimensions</li>
             <li>30+ assessed peer cohort</li>
-            <li>90-day plan + 24-month roadmap</li>
+            <li>90-day plan + 12-month roadmap</li>
           </ul>
         </div>
       </div>

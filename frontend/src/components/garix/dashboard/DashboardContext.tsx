@@ -6,6 +6,8 @@ interface DashboardData {
   dimensions: Dimension[];
   benchmarks: Benchmark[];
   findings: Finding[];
+  scores?: any;
+  insights?: any;
 }
 
 export const DashboardContext = createContext<DashboardData>({
@@ -13,6 +15,8 @@ export const DashboardContext = createContext<DashboardData>({
   dimensions,
   benchmarks,
   findings,
+  scores: undefined,
+  insights: undefined,
 });
 
 export const useDashboardData = () => useContext(DashboardContext);

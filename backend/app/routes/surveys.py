@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from firebase_admin import firestore
 from app.firebase import get_db
 from app.routes.benchmarks import compute_benchmark
+from app.firestore_utils import update_survey_record, create_survey_record
+from app.transformation import get_transformation_summary
 from openai import AzureOpenAI
 
 router = APIRouter()
@@ -71,6 +73,17 @@ class SurveySubmission(BaseModel):
     persona: str
     role: str
     sector: str
+    answers: list[AnswerItem]
+    session_id: Optional[str] = None  # If set, merge pre-computed insights from session cache
+
+
+class DimensionProcessRequest(BaseModel):
+    uid: str
+    session_id: str
+    persona: str
+    role: str
+    sector: str
+    dimension_id: int
     answers: list[AnswerItem]
 
 
@@ -195,12 +208,15 @@ Return ONLY a JSON object where keys are the dimension_id (as strings) and value
 }
 """
 
-def generate_insights(persona: str, role: str, sector: str, scores: dict) -> dict:
+def generate_insights(persona: str, role: str, sector: str, scores: dict, only_dimension_ids: list[str] = None) -> dict:
     benchmark_data = compute_benchmark(role, sector)
     
     dims_data = []
     for d in scores.get("dimensions", []):
         dim_id_str = str(d['dimension_id'])
+        if only_dimension_ids and dim_id_str not in only_dimension_ids:
+            continue
+            
         dim_bm = benchmark_data.get("dimensions", {}).get(dim_id_str, {})
         median = dim_bm.get("median", 0)
         p75 = dim_bm.get("leading_quartile", 0)
@@ -245,74 +261,81 @@ DIMENSIONS DATA:
         return {}
 
 
-def update_benchmark_aggregates(role: str, sector: str, scores: dict):
-    db = get_db()
-    
-    role_key = role.replace(" ", "_").lower()
-    sector_key = sector.replace(" ", "_").lower()
-    
-    keys = [
-        f"{role_key}_{sector_key}",
-        f"{role_key}_all",
-        f"all_{sector_key}",
-        "all_all"
-    ]
-    
-    composite = scores["composite_score"]
-    dim_scores = {str(d["dimension_id"]): d["score"] for d in scores["dimensions"]}
-    
-    @firestore.transactional
-    def update_in_transaction(transaction, doc_ref, key):
-        snapshot = doc_ref.get(transaction=transaction)
-        if snapshot.exists:
-            data = snapshot.to_dict()
-            count = data.get("response_count", 0) + 1
-            comp_scores = data.get("composite_scores", [])
-            
-            if len(comp_scores) < 2000:
-                comp_scores.append(composite)
-            
-            d_scores = data.get("dimension_scores", {})
-            for dim_id, score in dim_scores.items():
-                ds = d_scores.setdefault(dim_id, [])
-                if len(ds) < 2000:
-                    ds.append(score)
-                    
-            transaction.update(doc_ref, {
-                "response_count": count,
-                "composite_scores": comp_scores,
-                "dimension_scores": d_scores,
-                "last_updated": datetime.now(timezone.utc).isoformat()
-            })
-        else:
-            transaction.set(doc_ref, {
-                "role": role if not key.startswith("all_") else "all",
-                "sector": sector if not key.endswith("_all") else "all",
-                "response_count": 1,
-                "composite_scores": [composite],
-                "dimension_scores": {k: [v] for k, v in dim_scores.items()},
-                "last_updated": datetime.now(timezone.utc).isoformat()
-            })
 
-    for key in keys:
-        doc_ref = db.collection("benchmark_aggregates").document(key)
-        transaction = db.transaction()
-        try:
-            update_in_transaction(transaction, doc_ref, key)
-        except Exception as e:
-            print(f"Error updating aggregate {key}: {e}")
 
-def generate_insights_background(survey_id: str, uid: str, persona: str, role: str, sector: str, scores: dict):
-    """Background task to generate insights after survey submission"""
+def generate_insights_background(survey_id: str, uid: str, persona: str, role: str, sector: str, scores: dict, existing_insights: dict = None):
+    """Background task to generate insights after survey submission.
+    Only generates missing insights if existing_insights is provided.
+    """
     try:
         db = get_db()
-        insights = generate_insights(persona, role, sector, scores)
         
-        # Update both collections
-        db.collection("surveys").document(survey_id).update({"insights": insights})
-        db.collection("users").document(uid).collection("surveys").document(survey_id).update({"insights": insights})
+        all_dim_ids = [str(d["dimension_id"]) for d in scores.get("dimensions", [])]
+        existing_keys = set(existing_insights.keys()) if existing_insights else set()
+        missing_keys = [k for k in all_dim_ids if k not in existing_keys]
+
+        if not missing_keys and existing_insights:
+            print(f"✅ All insights already present for survey {survey_id}")
+            return
+
+        print(f"🔄 Generating insights for missing dimensions: {missing_keys}")
+        new_insights = generate_insights(persona, role, sector, scores, only_dimension_ids=missing_keys)
+        
+        # Merge with existing
+        final_insights = existing_insights.copy() if existing_insights else {}
+        final_insights.update(new_insights)
+        
+        # Update both collections via helper
+        update_survey_record(survey_id, uid, {"insights": final_insights})
+        print(f"✅ Background insights complete for survey {survey_id}")
     except Exception as e:
         print(f"Error generating insights in background: {e}")
+
+
+def generate_dimension_insights_background(session_id: str, uid: str, persona: str, role: str, sector: str, dimension_id: int, answers: list):
+    """Pre-compute and cache insights for a single dimension during survey progression."""
+    try:
+        db = get_db()
+        # Convert raw dicts back to AnswerItem objects for scoring
+        answer_items = [AnswerItem(**a) if isinstance(a, dict) else a for a in answers]
+        dim_scores = compute_scores(answer_items)
+
+        # Generate insights only for this dimension
+        dim_insight = generate_insights(persona, role, sector, dim_scores)
+
+        session_ref = db.collection("survey_sessions").document(session_id)
+        # Merge into session document using field path to avoid overwriting other dimensions
+        dim_key = str(dimension_id)
+        session_ref.set(
+            {
+                "uid": uid,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "dimension_insights": {dim_key: dim_insight.get(dim_key, {})},
+                "dimension_scores": {dim_key: next(
+                    (d for d in dim_scores["dimensions"] if d["dimension_id"] == dimension_id), {}
+                )},
+            },
+            merge=True,
+        )
+        print(f"✅ Pre-computed insights for dimension {dimension_id} in session {session_id}")
+    except Exception as e:
+        print(f"Error pre-computing dimension {dimension_id} insights: {e}")
+
+@router.post("/survey/process-dimension")
+async def process_dimension(req: DimensionProcessRequest, background_tasks: BackgroundTasks):
+    """Start background pre-computation of insights for a completed dimension."""
+    background_tasks.add_task(
+        generate_dimension_insights_background,
+        req.session_id,
+        req.uid,
+        req.persona,
+        req.role,
+        req.sector,
+        req.dimension_id,
+        [a.model_dump() for a in req.answers],
+    )
+    return {"status": "processing", "dimension_id": req.dimension_id}
+
 
 @router.post("/survey/submit")
 async def submit_survey(submission: SurveySubmission, background_tasks: BackgroundTasks):
@@ -331,6 +354,22 @@ async def submit_survey(submission: SurveySubmission, background_tasks: Backgrou
 
         benchmark_data = compute_benchmark(submission.role, submission.sector)
 
+        # ── Try to reuse pre-computed insights from session cache ──────────────
+        merged_insights: dict = {}
+        if submission.session_id:
+            try:
+                session_doc = db.collection("survey_sessions").document(submission.session_id).get()
+                if session_doc.exists:
+                    session_data = session_doc.to_dict() or {}
+                    merged_insights = session_data.get("dimension_insights", {})
+                    print(f"♻️  Reusing {len(merged_insights)} pre-computed dimension insights from session {submission.session_id}")
+            except Exception as e:
+                print(f"Warning: could not read session cache: {e}")
+
+        # Determine which dimensions still need insights (the last one + any not cached)
+        all_dim_ids = {str(d["dimension_id"]) for d in scores["dimensions"]}
+        missing_dims = all_dim_ids - set(merged_insights.keys())
+
         survey_data = {
             "uid": submission.uid,
             "user_name": user_name,
@@ -344,30 +383,43 @@ async def submit_survey(submission: SurveySubmission, background_tasks: Backgrou
             "sector": submission.sector,
             "answers": [a.model_dump() for a in submission.answers],
             "scores": scores,
-            "insights": None,  # Will be generated in background
+            "insights": merged_insights if merged_insights else None,
             "benchmarks": benchmark_data,
             "roadmap": None,
             "submitted_at": datetime.now(timezone.utc).isoformat(),
         }
 
-        _, doc_ref = (
-            db.collection("users")
-            .document(submission.uid)
-            .collection("surveys")
-            .add(survey_data)
-        )
+        # 3. Create the records using helper
+        survey_id = create_survey_record(submission.uid, survey_data)
 
-        db.collection("surveys").document(doc_ref.id).set(survey_data)
-        
-        # Generate insights in background (this takes 2-5 seconds)
-        background_tasks.add_task(generate_insights_background, doc_ref.id, submission.uid, submission.persona, submission.role, submission.sector, scores)
-        background_tasks.add_task(update_benchmark_aggregates, submission.role, submission.sector, scores)
+        if missing_dims:
+            # Only regenerate insights for dimensions not yet cached (incl. last dimension)
+            print(f"🔄 Generating insights for {len(missing_dims)} uncached dimensions in background")
+            background_tasks.add_task(
+                generate_insights_background,
+                survey_id, submission.uid, submission.persona, submission.role, submission.sector, scores, merged_insights
+            )
+        else:
+            # All dimensions already have insights – still update to ensure Firestore is in sync
+            background_tasks.add_task(
+                generate_insights_background,
+                survey_id, submission.uid, submission.persona, submission.role, submission.sector, scores, merged_insights
+            )
+
+
+
+        # Clean up session cache asynchronously
+        if submission.session_id:
+            try:
+                db.collection("survey_sessions").document(submission.session_id).delete()
+            except Exception:
+                pass
 
         return {
             "status": "ok",
-            "survey_id": doc_ref.id,
+            "survey_id": survey_id,
             "scores": scores,
-            "insights": None,  # Frontend will show loading state
+            "insights": merged_insights if merged_insights else None,
         }
 
     except Exception as e:
@@ -383,7 +435,27 @@ async def get_survey(survey_id: str):
         if not doc.exists:
             raise HTTPException(status_code=404, detail="Survey not found")
             
-        return doc.to_dict()
+        data = doc.to_dict()
+
+        # ── Fetch roadmap from its own dedicated collection ──────────────
+        try:
+            roadmap_doc = db.collection("roadmaps").document(survey_id).get()
+            if roadmap_doc.exists:
+                roadmap_payload = roadmap_doc.to_dict()
+                # The actual roadmap JSON is stored in the 'data' field of the roadmap doc
+                data["roadmap"] = roadmap_payload.get("data")
+        except Exception as e:
+            print(f"Warning: could not fetch separate roadmap doc: {e}")
+
+        # ── Add Transformation Summary for Dashboard ──────────────
+        try:
+            composite_score = data.get("scores", {}).get("composite_score", 0)
+            if composite_score > 0:
+                data["transformation_summary"] = get_transformation_summary(composite_score)
+        except Exception as e:
+            print(f"Warning: could not generate transformation summary: {e}")
+
+        return data
     except HTTPException:
         raise
     except Exception as e:

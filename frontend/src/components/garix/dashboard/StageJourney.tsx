@@ -3,7 +3,7 @@ import { useDashboardData } from "./DashboardContext";
 import { Check } from "lucide-react";
 
 export const StageJourney = () => {
-  const { clientProfile } = useDashboardData();
+  const { clientProfile } = useDashboardData() as any;
   
   return (
     <div className="relative">
@@ -11,7 +11,7 @@ export const StageJourney = () => {
       <div className="absolute left-0 right-0 top-7 h-px bg-border" aria-hidden />
       <div
         className="absolute left-0 top-7 h-px bg-gradient-to-r from-stage-1 via-stage-2 to-yellow transition-all duration-1000"
-        style={{ width: `${Math.max(0, Math.min(100, ((clientProfile.composite - 1) / 4) * 100))}%` }}
+        style={{ width: `${Math.max(0, Math.min(100, (((clientProfile.composite || 1) - 1) / 4) * 100))}%` }}
         aria-hidden
       />
 
@@ -19,7 +19,14 @@ export const StageJourney = () => {
         {stages.map((s) => {
           const isCurrent = s.n === clientProfile.currentStage;
           const isDone = s.n < clientProfile.currentStage;
-          const target = clientProfile.targets.find(t => t.stage === s.n);
+          
+          // Try to find the target data for this stage in our transformation summary
+          const target = clientProfile.transformationSummary?.all_targets?.find((t: any) => {
+            if (!t?.stage) return false;
+            const stageName = t.stage.replace("AI ", ""); // "AI Scaled" -> "Scaled"
+            return stageName === s.label || t.stage === s.label;
+          });
+
           return (
             <li key={s.n} className="flex flex-col items-center text-center group">
               <div
@@ -56,8 +63,8 @@ export const StageJourney = () => {
                 <div className="mt-1 text-[8px] sm:text-[10px] text-muted-foreground min-h-[12px] sm:min-h-[14px]">
                   {isCurrent && `★ Current · ${clientProfile.composite.toFixed(1)}`}
                   {isDone && "Completed"}
-                  {!isCurrent && !isDone && target && `Target · ${target.in}`}
-                  {!isCurrent && !isDone && !target && "Target"}
+                  {!isCurrent && !isDone && target && `${target.months} Months`}
+                  {!isCurrent && !isDone && !target && s.n > clientProfile.currentStage && "Analyzing..."}
                 </div>
               </div>
             </li>

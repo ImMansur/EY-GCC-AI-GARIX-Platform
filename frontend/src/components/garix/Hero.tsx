@@ -50,7 +50,7 @@ export const Hero = () => {
           {[
             { k: "Engagement duration", v: "10–14", suffix: "working days" },
             { k: "Maturity stages", v: "5", suffix: "stages · GARIX scoring" },
-            { k: "Dimensions assessed", v: "9", suffix: "dimensions · 45 sub-dimensions" },
+            { k: "Dimensions assessed", v: "9", suffix: "dimensions · 27 sub-dimensions" },
           ].map((s, i) => (
             <div
               key={s.k}

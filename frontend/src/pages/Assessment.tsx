@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Flag, CheckCircle2 } from "lucide-react";
@@ -48,10 +48,10 @@ type Answers = Record<number, string>;
 const Assessment = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingStage, setLoadingStage] = useState(0); // 0: initial, 1: tailoring, 2: finalizing, 3: done
+  const [loadingStage, setLoadingStage] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); 
+  const [searchParams] = useSearchParams();
   const persona = searchParams.get("persona");
   const role = searchParams.get("role");
 
@@ -60,6 +60,66 @@ const Assessment = () => {
   const [answers, setAnswers] = useState<Answers>({});
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
   const [shuffledOptionsMap, setShuffledOptionsMap] = useState<Record<number, any[]>>({});
+
+  // Background processing state
+  const sessionId = useRef<string>(Math.random().toString(36).substr(2, 12) + Date.now().toString(36));
+  // Set of dimension indices whose insights have been sent for pre-processing
+  const [processingDims, setProcessingDims] = useState<Set<number>>(new Set());
+  // Snapshot of answer keys per dimension at time of last process call (for invalidation)
+  const dimAnswerSnapshots = useRef<Record<number, string>>({});
+  // Show submit warning when last dim has unanswered questions
+  const [showSubmitWarning, setShowSubmitWarning] = useState(false);
+
+  // ── Hooks must be defined before any early returns ──────────────────────
+  // Compute a stable snapshot string for a dimension's current answers
+  const getDimAnswerSnapshot = useCallback((dIdx: number, currentAnswers: Answers, qs: any[]) => {
+    const dimQs = qs.filter(q => q.dimension_name.toLowerCase().includes(assessmentDimensions[dIdx].name.toLowerCase()));
+    return dimQs.map(q => `${q.id}:${currentAnswers[q.id] ?? ""}`).join("|");
+  }, []);
+
+  const triggerDimProcessing = useCallback((dIdx: number, currentAnswers: Answers, qs: any[], opts: Record<number, any[]>) => {
+    const d = assessmentDimensions[dIdx];
+    const dimQs = qs.filter(q => q.dimension_name.toLowerCase().includes(d.name.toLowerCase()));
+    const snapshot = getDimAnswerSnapshot(dIdx, currentAnswers, qs);
+    if (dimAnswerSnapshots.current[dIdx] === snapshot) return;
+    dimAnswerSnapshots.current[dIdx] = snapshot;
+
+    const answerItems = dimQs.map(q => {
+      const selectedKey = currentAnswers[q.id];
+      const allOptions = opts[q.id] || [];
+      const selectedOption = allOptions.find((o: any) => o.key === selectedKey);
+      return {
+        dimension_id: q.dimension_id || 1,
+        dimension_name: q.dimension_name,
+        sub_dimension_id: q.sub_dimension_id || q.id,
+        sub_dimension_name: q.sub_dimension || q.question.substring(0, 30),
+        question: q.question,
+        selected_option: selectedOption?.value || 1,
+        option_label: selectedOption?.label || "",
+        option_description: selectedOption?.description || "",
+        all_options: allOptions.map((o: any) => ({ value: o.value, label: o.label, description: o.description })),
+      };
+    });
+
+    const user = auth.currentUser;
+    const uid = user ? user.uid : "anon";
+    const sector = searchParams.get("sector") || "Technology";
+    setProcessingDims(prev => new Set(prev).add(dIdx));
+
+    fetch(`${API_BASE}/api/survey/process-dimension`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid,
+        session_id: sessionId.current,
+        persona: persona || "Business Strategy",
+        role: role || "Executive",
+        sector,
+        dimension_id: dimQs[0]?.dimension_id || (dIdx + 1),
+        answers: answerItems,
+      }),
+    }).catch(err => console.warn("Background dim processing failed:", err));
+  }, [getDimAnswerSnapshot, persona, role, searchParams]);
 
   // Multi-stage loading effect
   useEffect(() => {
@@ -160,26 +220,16 @@ const Assessment = () => {
   }
 
 
-  if (submitting) {
-    return (
-      <div className="min-h-screen bg-paper flex flex-col items-center justify-center font-sans px-4">
-        <div className="h-6 w-6 sm:h-8 sm:w-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mb-3 sm:mb-4" />
-        <div className="text-ink-soft text-base sm:text-lg font-semibold mb-1 text-center">Processing your assessment...</div>
-        <div className="text-muted-foreground text-xs sm:text-sm text-center">Generating your GARIX maturity profile</div>
-      </div>
-    );
-  }
 
-  const isFlagged = flagged.has(question.id);
-  const currentAnswer = answers[question.id];
+
+  const isFlagged = question ? flagged.has(question.id) : false;
+  const currentAnswer = question ? answers[question.id] : undefined;
   const isFirst = activeDimIdx === 0 && activeQIdx === 0;
   const isLast =
     activeDimIdx === assessmentDimensions.length - 1 &&
     activeQIdx === filteredQuestions.length - 1;
 
-  const handleAnswer = (key: string) => {
-    setAnswers((prev) => ({ ...prev, [question.id]: key }));
-  };
+
 
   const toggleFlag = () => {
     setFlagged((prev) => {
@@ -192,12 +242,11 @@ const Assessment = () => {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    
+
     const answerItems = questions.map(q => {
       const selectedKey = answers[q.id];
       const allOptions = shuffledOptionsMap[q.id] || [];
-      const selectedOption = allOptions.find(opt => opt.key === selectedKey);
-      
+      const selectedOption = allOptions.find((opt: any) => opt.key === selectedKey);
       return {
         dimension_id: q.dimension_id || 1,
         dimension_name: q.dimension_name,
@@ -207,11 +256,11 @@ const Assessment = () => {
         selected_option: selectedOption?.value || 1,
         option_label: selectedOption?.label || "",
         option_description: selectedOption?.description || "",
-        all_options: allOptions.map(opt => ({
+        all_options: allOptions.map((opt: any) => ({
           value: opt.value,
           label: opt.label,
-          description: opt.description
-        }))
+          description: opt.description,
+        })),
       };
     });
 
@@ -221,14 +270,15 @@ const Assessment = () => {
       persona: persona || "Business Strategy",
       role: role || "Executive",
       sector: searchParams.get("sector") || "Technology",
-      answers: answerItems
+      answers: answerItems,
+      session_id: sessionId.current,
     };
 
     try {
       const res = await fetch(`${API_BASE}/api/survey/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -236,7 +286,6 @@ const Assessment = () => {
         setSubmitting(false);
         return;
       }
-      // Clean up legacy local storage if it exists
       localStorage.removeItem("garix_survey_result");
       navigate(`/dashboard?id=${data.survey_id}`);
     } catch (err) {
@@ -250,10 +299,46 @@ const Assessment = () => {
     if (activeQIdx < filteredQuestions.length - 1) {
       setActiveQIdx((i) => i + 1);
     } else if (activeDimIdx < assessmentDimensions.length - 1) {
+      // Moving to next dimension — check if current dim is fully answered, then fire background processing
+      // Note: handleAnswer also triggers this for earlier pre-processing
+      const dimFullyAnswered = filteredQuestions.every(q => answers[q.id]);
+      const isLastDim = activeDimIdx === assessmentDimensions.length - 1;
+      if (dimFullyAnswered && !isLastDim) {
+        triggerDimProcessing(activeDimIdx, answers, questions, shuffledOptionsMap);
+      }
       setActiveDimIdx((i) => i + 1);
       setActiveQIdx(0);
     } else {
+      // Last question of last dimension — validate all answered before submitting
+      const lastDimQs = filteredQuestions;
+      const unanswered = lastDimQs.filter(q => !answers[q.id]);
+      if (unanswered.length > 0) {
+        setShowSubmitWarning(true);
+        return;
+      }
       handleSubmit();
+    }
+  };
+
+  const handleAnswer = (key: string) => {
+    const qId = filteredQuestions[activeQIdx].id;
+    const newAnswers = { ...answers, [qId]: key };
+    setAnswers(newAnswers);
+
+    // If this is the last question of the current dimension, trigger background processing immediately
+    // rather than waiting for the user to click "Next Dimension"
+    const isLastQOfDim = activeQIdx === filteredQuestions.length - 1;
+    const isLastDim = activeDimIdx === assessmentDimensions.length - 1;
+    if (isLastQOfDim && !isLastDim) {
+      const dimFullyAnswered = filteredQuestions.every(q => q.id === qId ? true : !!answers[q.id]);
+      if (dimFullyAnswered) {
+        triggerDimProcessing(activeDimIdx, newAnswers, questions, shuffledOptionsMap);
+      }
+    }
+
+    if (showSubmitWarning && isLastDim) {
+      const allLastDimAnswered = filteredQuestions.every(q => q.id === qId ? true : !!newAnswers[q.id]);
+      if (allLastDimAnswered) setShowSubmitWarning(false);
     }
   };
 
@@ -318,9 +403,9 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                 >
                   <div className={cn("text-xs font-semibold flex items-center justify-between", isActiveDim ? "text-ink" : dimAnswered > 0 ? "text-ink" : "text-muted-foreground")}>
                     {d.name}
-                    {dimAnswered === dimQuestions.length && (
+                    {dimAnswered === dimQuestions.length && dimQuestions.length > 0 ? (
                       <CheckCircle2 className="h-3 w-3 text-emerald-600 flex-shrink-0" />
-                    )}
+                    ) : null}
                   </div>
                   <div className={cn("text-[10px] mt-0.5", dimAnswered > 0 ? "text-ink/50" : "text-muted-foreground/60")}>
                     {dimAnswered}/{dimQuestions.length} answered
@@ -344,9 +429,13 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                           key={q.id}
                           onClick={() => jumpTo(dIdx, qIdx)}
                           className={cn(
-                            "h-7 w-7 text-[10px] font-semibold transition-all flex items-center justify-center",
-                            isActiveQ
+                            "relative h-7 w-7 text-[10px] font-semibold transition-all flex items-center justify-center rounded-sm",
+                            isActiveQ && isFlaggedQ
+                              ? "bg-orange-500 text-white ring-2 ring-orange-200"
+                              : isActiveQ
                               ? "bg-yellow text-ink"
+                              : isAnswered && isFlaggedQ
+                              ? "bg-orange-600 text-white"
                               : isAnswered
                               ? "bg-ink text-paper"
                               : isFlaggedQ
@@ -363,6 +452,43 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
               </div>
             );
           })}
+
+          {/* Flagged Section */}
+          {flagged.size > 0 && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="px-5 text-[9px] uppercase tracking-[0.2em] text-orange-600 font-semibold mb-2 flex items-center gap-1.5">
+                <Flag className="h-3 w-3" /> Flagged for Review
+              </p>
+              <div className="flex flex-col">
+                {Array.from(flagged).map(qId => {
+                  const q = questions.find(q => q.id === qId);
+                  if (!q) return null;
+                  
+                  const dIdx = assessmentDimensions.findIndex(d => q.dimension_name.toLowerCase().includes(d.name.toLowerCase()));
+                  const dimQuestions = questions.filter(
+                    dq => dq.dimension_name.toLowerCase().includes(assessmentDimensions[dIdx].name.toLowerCase())
+                  );
+                  const qIdx = dimQuestions.findIndex(dq => dq.id === qId);
+                  
+                  return (
+                    <button
+                      key={qId}
+                      onClick={() => jumpTo(dIdx, qIdx)}
+                      className={cn(
+                        "w-full text-left px-5 py-2 transition-all hover:bg-muted/60 flex items-center justify-between group",
+                        activeQIdx === qIdx && activeDimIdx === dIdx ? "bg-orange-50/50 border-l-2 border-orange-500 pl-[18px]" : "border-l-2 border-transparent"
+                      )}
+                    >
+                      <div className="text-xs font-medium text-ink/80 group-hover:text-ink truncate pr-2">
+                        {assessmentDimensions[dIdx]?.name} - Q{qIdx + 1}
+                      </div>
+                      <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-ink opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Progress footer */}
@@ -436,9 +562,13 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                         key={q.id}
                         onClick={() => jumpTo(activeDimIdx, qIdx)}
                         className={cn(
-                          "h-8 w-8 text-xs font-semibold transition-all flex items-center justify-center rounded flex-shrink-0",
-                          isActiveQ
+                          "relative h-8 w-8 text-xs font-semibold transition-all flex items-center justify-center rounded flex-shrink-0",
+                          isActiveQ && isFlaggedQ
+                            ? "bg-orange-500 text-white ring-2 ring-orange-200"
+                            : isActiveQ
                             ? "bg-yellow text-ink"
+                            : isAnswered && isFlaggedQ
+                            ? "bg-orange-600 text-white"
                             : isAnswered
                             ? "bg-ink text-paper"
                             : isFlaggedQ
@@ -478,7 +608,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
         </div>
 
         {/* Question area */}
-        <div className="flex-1 overflow-y-auto pb-32 lg:pb-0">
+        <div className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-4 py-4 lg:px-8 lg:py-10">
             {/* Dimension tag */}
             <div className={cn("inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-muted border border-border mb-6", dim.color)}>
@@ -537,10 +667,10 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                     key={opt.key}
                     onClick={() => handleAnswer(opt.key)}
                     className={cn(
-                      "w-full text-left flex items-start gap-3 p-4 lg:p-5 border transition-all group",
+                      "w-full text-left flex items-start gap-3 p-4 lg:p-5 border transition-all duration-300 group rounded-xl",
                       isSelected
-                        ? "border-yellow bg-yellow/5 shadow-yellow/20"
-                        : "border-border bg-paper-elevated hover:border-yellow hover:shadow-card"
+                        ? "border-yellow bg-gradient-to-r from-yellow/10 to-transparent shadow-[0_4px_12px_rgba(250,204,21,0.15)] ring-1 ring-yellow/30 transform scale-[1.01]"
+                        : "border-border/50 bg-paper-elevated/80 backdrop-blur-sm hover:border-yellow/50 hover:shadow-lg hover:-translate-y-0.5"
                     )}
                   >
                     <span
@@ -566,40 +696,59 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                 );
               })}
             </div>
+            {/* Submit warning — last dimension, unanswered questions */}
+            {showSubmitWarning && isLast && (() => {
+              const unansweredCount = filteredQuestions.filter(q => !answers[q.id]).length;
+              return unansweredCount > 0 ? (
+                <div className="mt-4 flex items-center gap-2 rounded-lg border border-orange-300 bg-orange-50 px-4 py-3 text-xs text-orange-700">
+                  <Flag className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>Please answer all <strong>{unansweredCount}</strong> remaining question{unansweredCount > 1 ? "s" : ""} in this section before submitting.</span>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Bottom nav */}
+            <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6 lg:mt-12 lg:pt-8">
+              <button
+                onClick={goPrev}
+                disabled={isFirst}
+                className={cn(
+                  "inline-flex min-w-0 items-center gap-2 text-sm font-medium transition-colors",
+                  isFirst ? "text-muted-foreground/40 cursor-not-allowed" : "text-muted-foreground hover:text-ink"
+                )}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </button>
+
+              <div className="hidden text-[11px] text-muted-foreground sm:block">
+                {answeredCount} of {TOTAL} answered
+              </div>
+
+              <button
+                onClick={goNext}
+                disabled={submitting}
+                className={cn(
+                  "inline-flex min-w-0 items-center gap-2 px-6 py-3 text-sm font-semibold transition-all duration-300 rounded-lg shadow-sm",
+                  currentAnswer && !submitting
+                    ? "bg-yellow text-ink hover:opacity-90 hover:shadow-md hover:-translate-y-0.5"
+                    : "bg-muted text-muted-foreground cursor-not-allowed opacity-70"
+                )}
+              >
+                {submitting ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    {isLast ? "Submit Assessment" : "Next Question"}
+                    <ChevronRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Bottom nav */}
-        <div className="fixed inset-x-3 bottom-12 z-20 flex items-center justify-between gap-3 rounded-xl border border-border bg-paper-elevated px-3 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.14)] lg:relative lg:inset-auto lg:bottom-auto lg:gap-0 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:px-8 lg:py-4 lg:shadow-none">
-          <button
-            onClick={goPrev}
-            disabled={isFirst}
-            className={cn(
-              "inline-flex min-w-0 items-center gap-2 text-sm font-medium transition-colors",
-              isFirst ? "text-muted-foreground/40 cursor-not-allowed" : "text-muted-foreground hover:text-ink"
-            )}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Previous
-          </button>
-
-          <div className="hidden text-[11px] text-muted-foreground sm:block">
-            {answeredCount} of {TOTAL} answered
-          </div>
-
-          <button
-            onClick={goNext}
-            disabled={submitting}
-            className={cn(
-              "inline-flex min-w-0 items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-all lg:px-6",
-              currentAnswer && !submitting
-                ? "bg-yellow text-ink hover:shadow-yellow"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            )}
-          >
-            {submitting ? "Submitting..." : isLast ? "Submit" : "Next"}
-            <ChevronRight className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </div>

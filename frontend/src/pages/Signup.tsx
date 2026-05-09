@@ -80,6 +80,7 @@ const Signup = () => {
         location: form.location,
         size: form.size,
         industry: form.industry,
+        role: "user",
         createdAt: serverTimestamp(),
       });
 
