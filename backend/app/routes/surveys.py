@@ -293,7 +293,7 @@ def generate_insights_background(survey_id: str, uid: str, persona: str, role: s
 
 
 def generate_dimension_insights_background(session_id: str, uid: str, persona: str, role: str, sector: str, dimension_id: int, answers: list):
-    """Pre-compute and cache insights for a single dimension during survey progression."""
+    """Pre-compute and cache insights for a single dimension directly in the surveys collection."""
     try:
         db = get_db()
         # Convert raw dicts back to AnswerItem objects for scoring
@@ -303,21 +303,24 @@ def generate_dimension_insights_background(session_id: str, uid: str, persona: s
         # Generate insights only for this dimension
         dim_insight = generate_insights(persona, role, sector, dim_scores)
 
-        session_ref = db.collection("survey_sessions").document(session_id)
-        # Merge into session document using field path to avoid overwriting other dimensions
+        # Write directly to the surveys collection with session_id as doc_id
+        # Mark as draft so it doesn't show in dashboard until submitted
+        survey_ref = db.collection("surveys").document(session_id)
         dim_key = str(dimension_id)
-        session_ref.set(
+        
+        dim_data = next((d for d in dim_scores["dimensions"] if d["dimension_id"] == dimension_id), {})
+        
+        survey_ref.set(
             {
                 "uid": uid,
+                "status": "draft",
                 "updated_at": datetime.now(timezone.utc).isoformat(),
-                "dimension_insights": {dim_key: dim_insight.get(dim_key, {})},
-                "dimension_scores": {dim_key: next(
-                    (d for d in dim_scores["dimensions"] if d["dimension_id"] == dimension_id), {}
-                )},
+                "insights": {dim_key: dim_insight.get(dim_key, {})},
+                "partial_scores": {dim_key: dim_data},
             },
             merge=True,
         )
-        print(f"✅ Pre-computed insights for dimension {dimension_id} in session {session_id}")
+        print(f"✅ Pre-computed insights for dimension {dimension_id} in surveys/{session_id}")
     except Exception as e:
         print(f"Error pre-computing dimension {dimension_id} insights: {e}")
 
@@ -354,17 +357,17 @@ async def submit_survey(submission: SurveySubmission, background_tasks: Backgrou
 
         benchmark_data = compute_benchmark(submission.role, submission.sector)
 
-        # ── Try to reuse pre-computed insights from session cache ──────────────
+        # ── Try to reuse pre-computed insights from draft document ──────────────
         merged_insights: dict = {}
         if submission.session_id:
             try:
-                session_doc = db.collection("survey_sessions").document(submission.session_id).get()
+                session_doc = db.collection("surveys").document(submission.session_id).get()
                 if session_doc.exists:
                     session_data = session_doc.to_dict() or {}
-                    merged_insights = session_data.get("dimension_insights", {})
-                    print(f"♻️  Reusing {len(merged_insights)} pre-computed dimension insights from session {submission.session_id}")
+                    merged_insights = session_data.get("insights", {})
+                    print(f"♻️  Reusing {len(merged_insights)} pre-computed dimension insights from draft {submission.session_id}")
             except Exception as e:
-                print(f"Warning: could not read session cache: {e}")
+                print(f"Warning: could not read draft cache: {e}")
 
         # Determine which dimensions still need insights (the last one + any not cached)
         all_dim_ids = {str(d["dimension_id"]) for d in scores["dimensions"]}
@@ -387,10 +390,16 @@ async def submit_survey(submission: SurveySubmission, background_tasks: Backgrou
             "benchmarks": benchmark_data,
             "roadmap": None,
             "submitted_at": datetime.now(timezone.utc).isoformat(),
+            "status": "completed"
         }
 
-        # 3. Create the records using helper
-        survey_id = create_survey_record(submission.uid, survey_data)
+        # 3. Use session_id as the final survey_id if provided, otherwise generate one
+        survey_id = submission.session_id if submission.session_id else "survey_" + datetime.now().strftime("%y%m%d%H%M") + submission.uid[:4]
+        
+        # Save/Sync to both required locations
+        db.collection("surveys").document(survey_id).set(survey_data)
+        if submission.uid and submission.uid != "anon":
+            db.collection("users").document(submission.uid).collection("surveys").document(survey_id).set(survey_data)
 
         if missing_dims:
             # Only regenerate insights for dimensions not yet cached (incl. last dimension)
@@ -408,12 +417,6 @@ async def submit_survey(submission: SurveySubmission, background_tasks: Backgrou
 
 
 
-        # Clean up session cache asynchronously
-        if submission.session_id:
-            try:
-                db.collection("survey_sessions").document(submission.session_id).delete()
-            except Exception:
-                pass
 
         return {
             "status": "ok",
