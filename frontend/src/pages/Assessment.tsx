@@ -794,7 +794,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
 
         {/* Persistent Bottom Nav — Mobile Fixed, Desktop In-flow */}
         <div className={cn(
-          "lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-paper-elevated border-t border-border px-4 pt-4 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all duration-500 transform",
+          "lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-paper-elevated border-t border-border px-4 pt-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all duration-500 transform",
           (currentAnswer || hasReachedBottom) ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
         )}>
           <div className="flex items-center gap-3">
