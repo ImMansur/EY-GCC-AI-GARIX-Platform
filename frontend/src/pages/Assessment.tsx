@@ -69,6 +69,9 @@ const Assessment = () => {
   const dimAnswerSnapshots = useRef<Record<number, string>>({});
   // Show submit warning when last dim has unanswered questions
   const [showSubmitWarning, setShowSubmitWarning] = useState(false);
+  const [hasReachedBottom, setHasReachedBottom] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Hooks must be defined before any early returns ──────────────────────
   // Compute a stable snapshot string for a dimension's current answers
@@ -186,6 +189,25 @@ const Assessment = () => {
         setTimeout(() => setLoading(false), 1800);
       });
   }, [persona, role]);
+
+  // Observer for reaching the bottom of the question content
+  useEffect(() => {
+    if (loading) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setHasReachedBottom(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    if (bottomRef.current) observer.observe(bottomRef.current);
+    return () => observer.disconnect();
+  }, [loading, activeDimIdx, activeQIdx]);
+
+  // Reset scroll detection when question changes and scroll to top
+  useEffect(() => {
+    setHasReachedBottom(false);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [activeDimIdx, activeQIdx]);
   if (!persona || !role) {
     return (
       <div className="flex h-screen items-center justify-center bg-paper">
@@ -241,6 +263,10 @@ const Assessment = () => {
   };
 
   const handleSubmit = async () => {
+    if (flagged.size > 0) {
+      alert("You have flagged questions for review. Please unflag all questions before submitting.");
+      return;
+    }
     setSubmitting(true);
 
     const answerItems = questions.map(q => {
@@ -316,6 +342,27 @@ const Assessment = () => {
         setShowSubmitWarning(true);
         return;
       }
+
+      // NEW: Check for flagged questions before submitting
+      if (flagged.size > 0) {
+        const firstFlaggedId = Array.from(flagged)[0];
+        const qIndex = questions.findIndex(q => q.id === firstFlaggedId);
+        if (qIndex !== -1) {
+          const targetQ = questions[qIndex];
+          const dIdx = assessmentDimensions.findIndex(d => 
+            targetQ.dimension_name.toLowerCase().includes(d.name.toLowerCase())
+          );
+          const dimQs = questions.filter(q => 
+            q.dimension_name.toLowerCase().includes(assessmentDimensions[dIdx].name.toLowerCase())
+          );
+          const innerQIdx = dimQs.findIndex(q => q.id === firstFlaggedId);
+          
+          alert("You have flagged questions for review. Please unflag all questions before submitting.");
+          jumpTo(dIdx, innerQIdx);
+          return;
+        }
+      }
+
       handleSubmit();
     }
   };
@@ -363,7 +410,7 @@ const Assessment = () => {
 
  
   return (
-    <div className="flex h-screen bg-paper text-ink font-sans overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-screen lg:h-screen bg-paper text-ink font-sans overflow-hidden lg:overflow-hidden">
       {/* ── Sidebar ── */}
       <aside className="hidden lg:flex w-64 flex-shrink-0 border-r border-border flex-col overflow-hidden bg-paper-elevated">
         {/* Logo — mirrors Header.tsx */}
@@ -510,7 +557,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
       <div className="flex-1 flex flex-col overflow-hidden bg-paper">
 
         {/* Top bar with dimension tabs (mobile) and breadcrumb (desktop) - STICKY ON MOBILE */}
-        <div className="flex-shrink-0 bg-paper-elevated border-b border-border lg:relative sticky top-0 z-10">
+        <div className="flex-shrink-0 bg-paper-elevated border-b border-border">
           {/* Mobile: Q indicator and dimension tabs */}
           <div className="lg:hidden bg-paper-elevated">
             {/* Question indicator row */}
@@ -608,7 +655,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
         </div>
 
         {/* Question area */}
-        <div className="flex-1 overflow-y-auto">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pb-40 lg:pb-10">
           <div className="max-w-2xl mx-auto px-4 py-4 lg:px-8 lg:py-10">
             {/* Dimension tag */}
             <div className={cn("inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-muted border border-border mb-6", dim.color)}>
@@ -707,13 +754,16 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
               ) : null;
             })()}
 
-            {/* Bottom nav */}
-            <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6 lg:mt-12 lg:pt-8">
+            {/* Anchor for bottom detection */}
+            <div ref={bottomRef} className="h-4 w-full" />
+
+            {/* Desktop Bottom Nav — Only visible on large screens */}
+            <div className="hidden lg:flex items-center justify-between gap-3 border-t border-border pt-8 mt-12">
               <button
                 onClick={goPrev}
                 disabled={isFirst}
                 className={cn(
-                  "inline-flex min-w-0 items-center gap-2 text-sm font-medium transition-colors",
+                  "inline-flex items-center gap-2 text-sm font-semibold transition-colors",
                   isFirst ? "text-muted-foreground/40 cursor-not-allowed" : "text-muted-foreground hover:text-ink"
                 )}
               >
@@ -721,7 +771,7 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                 Previous
               </button>
 
-              <div className="hidden text-[11px] text-muted-foreground sm:block">
+              <div className="text-[11px] font-bold tracking-widest uppercase text-muted-foreground">
                 {answeredCount} of {TOTAL} answered
               </div>
 
@@ -729,27 +779,61 @@ const dimAnswered = dimQuestions.filter(q => answers[q.id]).length;
                 onClick={goNext}
                 disabled={submitting}
                 className={cn(
-                  "inline-flex min-w-0 items-center gap-2 px-6 py-3 text-sm font-semibold transition-all duration-300 rounded-lg shadow-sm",
+                  "inline-flex items-center gap-2 px-8 py-3.5 text-sm font-bold transition-all duration-300 rounded-lg shadow-sm",
                   currentAnswer && !submitting
-                    ? "bg-yellow text-ink hover:opacity-90 hover:shadow-md hover:-translate-y-0.5"
+                    ? "bg-yellow text-ink hover:shadow-lg hover:-translate-y-0.5"
                     : "bg-muted text-muted-foreground cursor-not-allowed opacity-70"
                 )}
               >
-                {submitting ? (
-                  <>
-                    <div className="h-4 w-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    {isLast ? "Submit Assessment" : "Next Question"}
-                    <ChevronRight className="h-4 w-4" />
-                  </>
-                )}
+                {submitting ? "Submitting..." : isLast ? "Submit Assessment" : "Next Question"}
+                {!submitting && <ChevronRight className="h-4 w-4" />}
               </button>
             </div>
           </div>
         </div>
+
+        {/* Persistent Bottom Nav — Mobile Fixed, Desktop In-flow */}
+        <div className={cn(
+          "lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-paper-elevated border-t border-border px-4 pt-4 pb-16 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all duration-500 transform",
+          (currentAnswer || hasReachedBottom) ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+        )}>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={goPrev}
+              disabled={isFirst}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 h-14 rounded-xl font-bold transition-all border-2",
+                isFirst 
+                  ? "border-muted text-muted-foreground/40 bg-muted/20" 
+                  : "border-ink text-ink active:scale-95"
+              )}
+            >
+              <ChevronLeft className="h-5 w-5" />
+              Prev
+            </button>
+
+            <button
+              onClick={goNext}
+              disabled={submitting || (!currentAnswer && !isLast)}
+              className={cn(
+                "flex-[2] flex items-center justify-center gap-2 h-14 rounded-xl font-bold transition-all shadow-lg active:scale-95",
+                currentAnswer || isLast
+                  ? "bg-yellow text-ink shadow-yellow/20"
+                  : "bg-muted text-muted-foreground opacity-50 border-none shadow-none"
+              )}
+            >
+              {submitting ? (
+                <div className="h-5 w-5 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  {isLast ? "Submit Assessment" : "Next Question"}
+                  <ChevronRight className="h-5 w-5" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );
